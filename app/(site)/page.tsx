@@ -126,12 +126,11 @@ export default function Home() {
             </div>
           ) : (
             properties.map((property: any, idx: number) => {
-              const heightClass = idx % 2 === 0 ? "h-[55vh]" : "h-[45vh]";
               const mobileHiddenClass = idx > 2 ? "hidden md:flex" : "flex";
 
               return (
                 <Link key={property.id} href={`/listings/${property.slug}`} className={`group ${mobileHiddenClass} flex-col cursor-pointer ${idx === 0 ? "lg:row-span-1" : ""}`}>
-                  <div className={`relative ${heightClass} w-full overflow-hidden bg-stone mb-5`}>
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone mb-5">
                     <Image 
                       src={property.image_url} 
                       alt={property.name} 
