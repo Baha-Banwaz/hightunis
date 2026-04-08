@@ -20,8 +20,8 @@ export default function ListingCard({
   category,
 }: ListingCardProps) {
   return (
-    <div className="group flex flex-col cursor-pointer">
-      <div className="relative h-[50vh] w-full overflow-hidden bg-stone mb-6">
+    <div className="group flex flex-col cursor-pointer h-full">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone mb-6">
         <Image
           src={imageUrl}
           alt={title}

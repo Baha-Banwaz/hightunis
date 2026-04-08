@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 
 interface Property {
@@ -46,12 +45,20 @@ export default function AdminProperties() {
   const [amenitiesInput, setAmenitiesInput] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const getToken = () => sessionStorage.getItem("admin_token") || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
+
   const fetchProperties = async () => {
-    const { data } = await supabase
-      .from("properties")
-      .select("*")
-      .order("order", { ascending: true });
-    if (data) setProperties(data);
+    try {
+      const res = await fetch("/api/admin/properties?orderColumn=order&ascending=true", {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProperties(data);
+      }
+    } catch(e) {
+      console.error(e);
+    }
     setLoading(false);
   };
 
@@ -95,11 +102,17 @@ export default function AdminProperties() {
       amenities: amenitiesInput.split(",").map((s) => s.trim()).filter(Boolean),
     };
 
-    if (editing) {
-      await supabase.from("properties").update(payload).eq("id", editing);
-    } else {
-      await supabase.from("properties").insert([payload]);
-    }
+    const method = editing ? "PUT" : "POST";
+    const url = editing ? `/api/admin/properties?id=${editing}` : "/api/admin/properties";
+
+    await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(payload)
+    });
 
     setSaving(false);
     setShowForm(false);
@@ -109,12 +122,22 @@ export default function AdminProperties() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this property?")) return;
-    await supabase.from("properties").delete().eq("id", id);
+    await fetch(`/api/admin/properties?id=${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${getToken()}` }
+    });
     fetchProperties();
   };
 
   const toggleField = async (id: string, field: "featured" | "published", current: boolean) => {
-    await supabase.from("properties").update({ [field]: !current }).eq("id", id);
+    await fetch(`/api/admin/properties?id=${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({ [field]: !current })
+    });
     fetchProperties();
   };
 

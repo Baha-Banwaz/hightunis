@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Inbox, Mail, Clock } from "lucide-react";
 
 interface Inquiry {
@@ -28,16 +27,34 @@ export default function AdminInquiries() {
   const [items, setItems] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const getToken = () => sessionStorage.getItem("admin_token") || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
+
   const fetch_ = async () => {
-    const { data } = await supabase.from("inquiries").select("*").order("created_at", { ascending: false });
-    if (data) setItems(data);
+    try {
+      const res = await fetch("/api/admin/inquiries", {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setItems(data);
+      }
+    } catch(e) {
+      console.error(e);
+    }
     setLoading(false);
   };
 
   useEffect(() => { fetch_(); }, []);
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("inquiries").update({ status }).eq("id", id);
+    await fetch(`/api/admin/inquiries?id=${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({ status })
+    });
     fetch_();
   };
 

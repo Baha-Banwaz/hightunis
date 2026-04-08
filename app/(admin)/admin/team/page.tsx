@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 
 interface TeamMember {
@@ -29,9 +28,20 @@ export default function AdminTeam() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
+  const getToken = () => sessionStorage.getItem("admin_token") || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
+
   const fetch_ = async () => {
-    const { data } = await supabase.from("team").select("*").order("order", { ascending: true });
-    if (data) setItems(data);
+    try {
+      const res = await fetch("/api/admin/team?orderColumn=order&ascending=true", {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setItems(data);
+      }
+    } catch(e) {
+      console.error(e);
+    }
     setLoading(false);
   };
 
@@ -46,17 +56,26 @@ export default function AdminTeam() {
 
   const handleSave = async () => {
     setSaving(true);
-    if (editing) {
-      await supabase.from("team").update(form).eq("id", editing);
-    } else {
-      await supabase.from("team").insert([form]);
-    }
+    const method = editing ? "PUT" : "POST";
+    const url = editing ? `/api/admin/team?id=${editing}` : "/api/admin/team";
+
+    await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(form)
+    });
     setSaving(false); setShowForm(false); setEditing(null); fetch_();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this team member?")) return;
-    await supabase.from("team").delete().eq("id", id);
+    await fetch(`/api/admin/team?id=${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${getToken()}` }
+    });
     fetch_();
   };
 

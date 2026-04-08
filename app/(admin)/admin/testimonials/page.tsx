@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 
 interface Testimonial {
@@ -29,9 +28,20 @@ export default function AdminTestimonials() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
+  const getToken = () => sessionStorage.getItem("admin_token") || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
+
   const fetch_ = async () => {
-    const { data } = await supabase.from("testimonials").select("*").order("created_at", { ascending: false });
-    if (data) setItems(data);
+    try {
+      const res = await fetch("/api/admin/testimonials", {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setItems(data);
+      }
+    } catch(e) {
+      console.error(e);
+    }
     setLoading(false);
   };
 
@@ -46,22 +56,38 @@ export default function AdminTestimonials() {
 
   const handleSave = async () => {
     setSaving(true);
-    if (editing) {
-      await supabase.from("testimonials").update(form).eq("id", editing);
-    } else {
-      await supabase.from("testimonials").insert([form]);
-    }
+    const method = editing ? "PUT" : "POST";
+    const url = editing ? `/api/admin/testimonials?id=${editing}` : "/api/admin/testimonials";
+
+    await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(form)
+    });
     setSaving(false); setShowForm(false); setEditing(null); fetch_();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this testimonial?")) return;
-    await supabase.from("testimonials").delete().eq("id", id);
+    await fetch(`/api/admin/testimonials?id=${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${getToken()}` }
+    });
     fetch_();
   };
 
   const togglePublished = async (id: string, current: boolean) => {
-    await supabase.from("testimonials").update({ published: !current }).eq("id", id);
+    await fetch(`/api/admin/testimonials?id=${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({ published: !current })
+    });
     fetch_();
   };
 

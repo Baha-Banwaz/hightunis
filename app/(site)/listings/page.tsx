@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ListingCard from "../components/ListingCard";
+import ListingCard from "@/app/components/ListingCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
@@ -26,9 +26,19 @@ export default function ListingsPage() {
     fetchProperties();
   }, []);
 
+  const getCategoryDBValue = (cat: string) => {
+    switch (cat) {
+      case "Villas": return "Residential";
+      case "Hotels": return "Hotel";
+      case "Yachts": return "Yacht";
+      case "Restaurants": return "Restaurant";
+      default: return cat;
+    }
+  };
+
   const filteredListings = activeCategory === "All" 
     ? properties 
-    : properties.filter(l => l.category === activeCategory);
+    : properties.filter((l: any) => l.category === getCategoryDBValue(activeCategory));
 
   return (
     <div className="bg-white min-h-screen pt-32 pb-24">
