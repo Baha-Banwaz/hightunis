@@ -28,13 +28,15 @@ export default function AdminTeam() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
-  const getToken = () => sessionStorage.getItem("admin_token") || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
 
   const fetch_ = async () => {
     try {
       const res = await fetch("/api/admin/team?orderColumn=order&ascending=true", {
-        headers: { "Authorization": `Bearer ${getToken()}` }
       });
+      if (res.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setItems(data);
@@ -63,7 +65,6 @@ export default function AdminTeam() {
       method,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${getToken()}`
       },
       body: JSON.stringify(form)
     });
@@ -74,7 +75,6 @@ export default function AdminTeam() {
     if (!confirm("Delete this team member?")) return;
     await fetch(`/api/admin/team?id=${id}`, {
       method: "DELETE",
-      headers: { "Authorization": `Bearer ${getToken()}` }
     });
     fetch_();
   };

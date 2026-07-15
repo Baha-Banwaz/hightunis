@@ -29,6 +29,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Estates", href: "/listings" },
     { name: "Services", href: "/services" },
+    { name: "Journal", href: "/blog" },
     { name: "Agency", href: "/about" },
     { name: "Concierge", href: "/contact" },
   ];

@@ -27,9 +27,9 @@ const NAV_ITEMS = [
 export default function AdminSidebar() {
   const pathname = usePathname();
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("ht_admin_auth");
-    window.location.reload();
+  const handleLogout = async () => {
+    await fetch("/api/admin/login", { method: "DELETE" });
+    window.location.href = "/admin/login";
   };
 
   return (
@@ -37,7 +37,7 @@ export default function AdminSidebar() {
       {/* Brand */}
       <div className="px-6 py-8 border-b border-black/10">
         <h1 className="text-xl font-black tracking-tighter uppercase text-black">
-          HIGH TUNIS
+          HIGHTUNIS
         </h1>
         <p className="text-[9px] font-bold uppercase tracking-[3px] text-black/40 mt-1">
           Content Manager

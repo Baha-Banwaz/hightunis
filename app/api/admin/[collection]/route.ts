@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-session";
 
 // List of allowed collections to dynamically operate on
 const ALLOWED_COLLECTIONS = [
@@ -11,21 +14,40 @@ const ALLOWED_COLLECTIONS = [
   "inquiries"
 ];
 
-// Helper to authenticate
-function isAuthenticated(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  const expectedPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-  if (!authHeader || !expectedPassword) return false;
+// Helper to authenticate via the HTTP-only session cookie set by /api/admin/login
+async function isAuthenticated() {
+  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
+  return verifySessionToken(token);
+}
 
-  const token = authHeader.replace("Bearer ", "").trim();
-  return token === expectedPassword;
+// Refresh the ISR-cached public pages that render this collection
+function revalidateCollection(collection: string) {
+  switch (collection) {
+    case "properties":
+      revalidatePath("/");
+      revalidatePath("/listings");
+      revalidatePath("/listings/[id]", "page");
+      break;
+    case "services":
+      revalidatePath("/services");
+      revalidatePath("/");
+      break;
+    case "team":
+    case "testimonials":
+      revalidatePath("/about");
+      break;
+    case "blog_posts":
+      revalidatePath("/blog");
+      revalidatePath("/blog/[slug]", "page");
+      break;
+  }
 }
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ collection: string }> }
 ) {
-  if (!isAuthenticated(req)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -60,7 +82,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ collection: string }> }
 ) {
-  if (!isAuthenticated(req)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -72,8 +94,9 @@ export async function POST(
 
   const body = await req.json();
   const { data, error } = await supabaseAdmin.from(collection).insert([body]).select();
-  
+
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  revalidateCollection(collection);
   return NextResponse.json(data);
 }
 
@@ -81,7 +104,7 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ collection: string }> }
 ) {
-  if (!isAuthenticated(req)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -99,6 +122,7 @@ export async function PUT(
   const { data, error } = await supabaseAdmin.from(collection).update(body).eq("id", id).select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  revalidateCollection(collection);
   return NextResponse.json(data);
 }
 
@@ -106,7 +130,7 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ collection: string }> }
 ) {
-  if (!isAuthenticated(req)) {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -123,5 +147,6 @@ export async function DELETE(
   const { data, error } = await supabaseAdmin.from(collection).delete().eq("id", id).select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  revalidateCollection(collection);
   return NextResponse.json(data);
 }

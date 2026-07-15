@@ -45,13 +45,15 @@ export default function AdminProperties() {
   const [amenitiesInput, setAmenitiesInput] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const getToken = () => sessionStorage.getItem("admin_token") || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
 
   const fetchProperties = async () => {
     try {
       const res = await fetch("/api/admin/properties?orderColumn=order&ascending=true", {
-        headers: { "Authorization": `Bearer ${getToken()}` }
       });
+      if (res.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setProperties(data);
@@ -109,7 +111,6 @@ export default function AdminProperties() {
       method,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${getToken()}`
       },
       body: JSON.stringify(payload)
     });
@@ -124,7 +125,6 @@ export default function AdminProperties() {
     if (!confirm("Delete this property?")) return;
     await fetch(`/api/admin/properties?id=${id}`, {
       method: "DELETE",
-      headers: { "Authorization": `Bearer ${getToken()}` }
     });
     fetchProperties();
   };
@@ -134,7 +134,6 @@ export default function AdminProperties() {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${getToken()}`
       },
       body: JSON.stringify({ [field]: !current })
     });

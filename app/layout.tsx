@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, DM_Sans } from "next/font/google";
+import { DM_Sans } from "next/font/google";
+import { SITE_URL, SITE_CONFIG } from "@/lib/site-config";
 import "./globals.css";
-
-const bodoniModa = Bodoni_Moda({
-  variable: "--font-bodoni-moda",
-  subsets: ["latin"],
-  weight: "900",
-});
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -15,8 +10,16 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "High Tunis | Tunisia's Luxury",
-  description: "Luxury stays, curated experiences, unforgettable moments.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_CONFIG.name} | ${SITE_CONFIG.tagline}`,
+    template: `%s | ${SITE_CONFIG.name}`,
+  },
+  description: SITE_CONFIG.description,
+  openGraph: {
+    siteName: SITE_CONFIG.name,
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -26,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${bodoniModa.variable} ${dmSans.variable} font-sans min-h-screen flex flex-col antialiased bg-white text-rich-black`}>
+      <body className={`${dmSans.variable} font-sans min-h-screen flex flex-col antialiased bg-white text-rich-black`}>
         {children}
       </body>
     </html>

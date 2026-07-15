@@ -1,6 +1,15 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: "Agency Services",
+  description:
+    "Bespoke strategy and digital architecture for hospitality pioneers — the HighTunis agency division.",
+};
 
 export default async function ServicesPage() {
   const { data: rawServices } = await supabase
@@ -33,15 +42,16 @@ export default async function ServicesPage() {
 
         <div className="flex flex-col gap-32">
            {services.length === 0 ? (
-             <div className="text-2xl font-bold uppercase tracking-widest text-black/30">Loading services...</div>
+             <div className="text-2xl font-bold uppercase tracking-widest text-black/30">No services available</div>
            ) : (
              services.map((service: any, idx: number) => (
              <div key={service.id} className={`flex flex-col ${idx % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-24`}>
                 <div className="w-full md:w-1/2 relative h-[50vh] md:h-[70vh] bg-stone">
-                  <Image 
+                  <Image
                     src={defaultImages[idx % defaultImages.length]}
                     alt={service.title}
                     fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover"
                   />
                   <div className="absolute top-0 left-0 bg-black text-white px-6 py-4 text-3xl font-black">

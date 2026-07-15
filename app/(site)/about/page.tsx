@@ -1,9 +1,19 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
+
+export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "HighTunis curates Tunisia's finest residential estates, boutique hotels, and bespoke luxury services.",
+};
 
 export default async function AboutPage() {
   const { data: teamData } = await supabase.from("team").select("*").order("order", { ascending: true });
-  const { data: testimonialsData } = await supabase.from("testimonials").select("*").eq("published", true).order("created_at", { ascending: false });
+  // no created_at ordering — the live DB's testimonials table lacks that column
+  const { data: testimonialsData } = await supabase.from("testimonials").select("*").eq("published", true);
 
   const team = teamData || [];
   const testimonials = testimonialsData || [];
@@ -29,10 +39,11 @@ export default async function AboutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 md:gap-32">
           
           <div className="lg:col-span-5 relative h-[60vh] md:h-[90vh] bg-stone">
-             <Image 
-              src="https://images.unsplash.com/photo-1542314831-c6a4d27ce6a2?fit=crop&w=1200&q=100" 
-              alt="Mediterranean architecture" 
+             <Image
+              src="https://images.unsplash.com/photo-1542314831-c6a4d27ce6a2?fit=crop&w=1200&q=100"
+              alt="Mediterranean architecture"
               fill
+              sizes="(max-width: 1024px) 100vw, 42vw"
               className="object-cover"
             />
           </div>
@@ -49,7 +60,7 @@ export default async function AboutPage() {
                  But hidden behind the whitewashed walls of Sidi Bou Said, deep within the palm groves of Tozeur, and anchored in the marinas of Bizerte, lies an entirely different world. A world of uncompromising exclusivity.
                </p>
                <p>
-                 High Tunis is the digital bridge to this world. We curate only the absolute finest residential estates, five-star boutique hotels, and bespoke luxury services available across the nation.
+                 HighTunis is the digital bridge to this world. We curate only the absolute finest residential estates, five-star boutique hotels, and bespoke luxury services available across the nation.
                </p>
              </div>
              
@@ -70,13 +81,13 @@ export default async function AboutPage() {
         {/* Team Section */}
         {team.length > 0 && (
           <div className="mt-32 pt-16 border-t-2 border-white">
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-16">The Architecture<br />of High Tunis.</h2>
+            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-16">The Architecture<br />of HighTunis.</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
               {team.map((member: any) => (
                 <div key={member.id} className="flex flex-col">
                    <div className="relative w-full aspect-square mb-6 bg-white/5 grayscale outline outline-1 outline-white/10 outline-offset-8 hover:grayscale-0 hover:outline-white/40 transition-all duration-700">
                      {member.photo_url ? (
-                       <Image src={member.photo_url} alt={member.name} fill className="object-cover" />
+                       <Image src={member.photo_url} alt={member.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
                      ) : (
                        <div className="absolute inset-0 flex items-center justify-center text-white/20 font-black text-4xl uppercase">{member.name[0]}</div>
                      )}
@@ -101,7 +112,7 @@ export default async function AboutPage() {
                    <div className="flex items-center gap-4 border-t border-white/10 pt-6">
                      {t.photo_url && (
                         <div className="relative w-12 h-12 rounded-full overflow-hidden grayscale">
-                          <Image src={t.photo_url} alt={t.author} fill className="object-cover" />
+                          <Image src={t.photo_url} alt={t.author} fill sizes="48px" className="object-cover" />
                         </div>
                      )}
                      <div>

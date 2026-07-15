@@ -90,21 +90,29 @@ ALTER TABLE public.team ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inquiries ENABLE ROW LEVEL SECURITY;
 
--- TO KEEP IT SIMPLE AND AVOID SUPABASE AUTH OVERHEAD:
--- We'll just allow anon to do everything, relying on the NEXT.js password gate.
-DROP POLICY IF EXISTS "Public can view published properties" ON public.properties;
-DROP POLICY IF EXISTS "Public can view published services" ON public.services;
-DROP POLICY IF EXISTS "Public can view published blog posts" ON public.blog_posts;
-DROP POLICY IF EXISTS "Public can view team members" ON public.team;
-DROP POLICY IF EXISTS "Public can view published testimonials" ON public.testimonials;
-DROP POLICY IF EXISTS "Public can insert inquiries" ON public.inquiries;
+-- Public (anon key) may only READ published content. All writes go through
+-- the admin API using the service role, which bypasses RLS. Inquiries are
+-- insert-only for the public so customer PII is never readable client-side.
+CREATE POLICY "public_read_published_properties" ON public.properties
+  FOR SELECT TO anon, authenticated USING (published = true);
+CREATE POLICY "public_read_published_services" ON public.services
+  FOR SELECT TO anon, authenticated USING (published = true);
+CREATE POLICY "public_read_published_blog_posts" ON public.blog_posts
+  FOR SELECT TO anon, authenticated USING (published = true);
+CREATE POLICY "public_read_published_testimonials" ON public.testimonials
+  FOR SELECT TO anon, authenticated USING (published = true);
+CREATE POLICY "public_read_team" ON public.team
+  FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "public_insert_inquiries" ON public.inquiries
+  FOR INSERT TO anon, authenticated WITH CHECK (status = 'new');
 
-CREATE POLICY "Allow anon all properties" ON public.properties FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all services" ON public.services FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all blog_posts" ON public.blog_posts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all team" ON public.team FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all testimonials" ON public.testimonials FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all inquiries" ON public.inquiries FOR ALL USING (true) WITH CHECK (true);
+-- Indexes matching the app's query patterns
+CREATE INDEX IF NOT EXISTS idx_properties_pub_feat_order ON public.properties (published, featured, "order");
+CREATE INDEX IF NOT EXISTS idx_services_pub_order        ON public.services (published, "order");
+CREATE INDEX IF NOT EXISTS idx_blog_posts_pub            ON public.blog_posts (published, published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_testimonials_pub_created  ON public.testimonials (published, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_team_order                ON public.team ("order");
+CREATE INDEX IF NOT EXISTS idx_inquiries_status_created  ON public.inquiries (status, created_at DESC);
 
 
 -- 3. Insert Seed Data (Properties)

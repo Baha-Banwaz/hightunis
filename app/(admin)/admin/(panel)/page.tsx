@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Building2, Briefcase, Inbox, Users, FileText, MessageSquareQuote } from "lucide-react";
 import Link from "next/link";
 
@@ -27,25 +26,14 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function fetchStats() {
-      const [props, svcs, blogs, teamMembers, tests, inqs, newInqs] = await Promise.all([
-        supabase.from("properties").select("id", { count: "exact", head: true }),
-        supabase.from("services").select("id", { count: "exact", head: true }),
-        supabase.from("blog_posts").select("id", { count: "exact", head: true }),
-        supabase.from("team").select("id", { count: "exact", head: true }),
-        supabase.from("testimonials").select("id", { count: "exact", head: true }),
-        supabase.from("inquiries").select("id", { count: "exact", head: true }),
-        supabase.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new"),
-      ]);
-
-      setStats({
-        properties: props.count ?? 0,
-        services: svcs.count ?? 0,
-        blog: blogs.count ?? 0,
-        team: teamMembers.count ?? 0,
-        testimonials: tests.count ?? 0,
-        inquiries: inqs.count ?? 0,
-        newInquiries: newInqs.count ?? 0,
-      });
+      const res = await fetch("/api/admin/stats");
+      if (res.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+      if (res.ok) {
+        setStats(await res.json());
+      }
       setLoading(false);
     }
     fetchStats();
@@ -67,7 +55,7 @@ export default function AdminDashboard() {
           Dashboard
         </h1>
         <p className="text-sm text-black/40 font-semibold mt-2">
-          Content overview for High Tunis
+          Content overview for HighTunis
         </p>
       </div>
 

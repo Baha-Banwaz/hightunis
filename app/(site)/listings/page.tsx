@@ -1,44 +1,21 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import ListingCard from "@/app/components/ListingCard";
-import { motion, AnimatePresence } from "framer-motion";
+import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
+import ListingsGrid from "./ListingsGrid";
 
-const CATEGORIES = ["All", "Villas", "Hotels", "Yachts", "Restaurants"];
+export const revalidate = 3600;
 
-export default function ListingsPage() {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [properties, setProperties] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export const metadata: Metadata = {
+  title: "The Collection",
+  description:
+    "Tunisia's finest villas, hotels, yachts and restaurants — curated by HighTunis.",
+};
 
-  useEffect(() => {
-    async function fetchProperties() {
-      const { data } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("published", true)
-        .order("order", { ascending: true });
-        
-      if (data) setProperties(data);
-      setLoading(false);
-    }
-    fetchProperties();
-  }, []);
-
-  const getCategoryDBValue = (cat: string) => {
-    switch (cat) {
-      case "Villas": return "Residential";
-      case "Hotels": return "Hotel";
-      case "Yachts": return "Yacht";
-      case "Restaurants": return "Restaurant";
-      default: return cat;
-    }
-  };
-
-  const filteredListings = activeCategory === "All" 
-    ? properties 
-    : properties.filter((l: any) => l.category === getCategoryDBValue(activeCategory));
+export default async function ListingsPage() {
+  const { data: properties } = await supabase
+    .from("properties")
+    .select("id, name, slug, category, location, price, image_url")
+    .eq("published", true)
+    .order("order", { ascending: true });
 
   return (
     <div className="bg-white min-h-screen pt-32 pb-24">
@@ -46,53 +23,7 @@ export default function ListingsPage() {
         <h1 className="text-6xl md:text-9xl font-black tracking-tighter uppercase text-black mb-12 border-b-2 border-black pb-8">
           The Collection
         </h1>
-
-        {/* Filter */}
-        <div className="flex flex-wrap gap-4 mb-16">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-8 py-3 text-[10px] font-bold uppercase tracking-[2px] transition-colors border border-black ${
-                activeCategory === cat 
-                  ? "bg-black text-white" 
-                  : "bg-transparent text-black hover:bg-black/10"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
-          {loading ? (
-            <div className="col-span-full h-[50vh] flex items-center justify-center">
-              <div className="text-xl font-bold uppercase tracking-widest animate-pulse">Loading Collection...</div>
-            </div>
-          ) : (
-            <AnimatePresence mode="popLayout">
-              {filteredListings.map((listing) => (
-                <motion.div
-                  key={listing.id}
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                >
-                  <ListingCard
-                    slug={listing.slug}
-                    title={listing.name}
-                    location={listing.location}
-                    price={listing.price}
-                    imageUrl={listing.image_url}
-                    category={listing.category}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          )}
-        </div>
+        <ListingsGrid properties={properties ?? []} />
       </div>
     </div>
   );

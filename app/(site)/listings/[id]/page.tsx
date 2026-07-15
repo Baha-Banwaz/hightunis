@@ -1,9 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, cache } from "react";
+import type { Metadata } from "next";
 import { ArrowLeft, Wifi, Car, Plane, Wine, Anchor, Coffee } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+
+export const revalidate = 3600;
 
 const ICON_MAP: Record<string, ReactNode> = {
   "Infinity Pool": <Anchor size={20} />,
@@ -17,20 +20,62 @@ const ICON_MAP: Record<string, ReactNode> = {
   "Private Cinema": <Wine size={20} />,
 };
 
-export default async function ListingDetail({ params }: { params: { id: string } }) {
-  const { data: property, error } = await supabase
+// cache() dedupes the query between generateMetadata and the page render
+const getProperty = cache(async (slug: string) => {
+  const { data } = await supabase
     .from("properties")
-    .select("*")
-    .eq("slug", params.id)
+    .select("name, slug, category, location, price, description, image_url, gallery, amenities")
+    .eq("slug", slug)
     .single();
+  return data;
+});
 
-  if (error || !property) {
+export async function generateStaticParams() {
+  const { data } = await supabase
+    .from("properties")
+    .select("slug")
+    .eq("published", true);
+  return (data ?? []).map(({ slug }) => ({ id: slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const property = await getProperty(id);
+  if (!property) return { title: "Not Found" };
+
+  const raw = property.description ?? "";
+  const description = raw.length > 160 ? `${raw.slice(0, 157).trimEnd()}…` : raw;
+
+  return {
+    title: property.name,
+    description,
+    openGraph: {
+      title: `${property.name} | HighTunis`,
+      description,
+      images: property.image_url ? [property.image_url] : [],
+    },
+  };
+}
+
+export default async function ListingDetail({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const property = await getProperty(id);
+
+  if (!property) {
     notFound();
   }
 
   const amenities = Array.isArray(property.amenities) ? property.amenities : [];
-  const gallery = Array.isArray(property.gallery) && property.gallery.length > 0 
-    ? property.gallery 
+  const gallery = Array.isArray(property.gallery) && property.gallery.length > 0
+    ? property.gallery
     : [
         "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop",
         "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1200&auto=format&fit=crop"
@@ -43,7 +88,7 @@ export default async function ListingDetail({ params }: { params: { id: string }
         <Link href="/listings" className="inline-flex items-center gap-4 text-[10px] font-bold uppercase tracking-[3px] border-b border-black pb-1 mb-12 hover:opacity-50 transition-opacity">
           <ArrowLeft size={16} /> Back to Collection
         </Link>
-        
+
         {/* Hero Title */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 border-b-2 border-black pb-8">
           <div>
@@ -62,28 +107,31 @@ export default async function ListingDetail({ params }: { params: { id: string }
         {/* Masonry / Parallax Layout Gallery */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-24">
           <div className="lg:col-span-8 relative h-[60vh] md:h-[80vh] w-full bg-stone">
-             <Image 
-              src={property.image_url} 
-              alt={property.name} 
+             <Image
+              src={property.image_url}
+              alt={property.name}
               fill
+              sizes="(max-width: 1024px) 100vw, 66vw"
               className="object-cover"
               priority
             />
           </div>
           <div className="lg:col-span-4 flex flex-col gap-12">
              <div className="relative h-[30vh] md:h-[40vh] w-full bg-stone">
-               <Image 
-                src={gallery[0]} 
-                alt="Interior" 
+               <Image
+                src={gallery[0]}
+                alt="Interior"
                 fill
+                sizes="(max-width: 1024px) 100vw, 33vw"
                 className="object-cover"
               />
              </div>
              <div className="relative h-[30vh] md:h-[40vh] w-full bg-stone">
-               <Image 
-                src={gallery[1] || gallery[0]} 
-                alt="Exterior" 
+               <Image
+                src={gallery[1] || gallery[0]}
+                alt="Exterior"
                 fill
+                sizes="(max-width: 1024px) 100vw, 33vw"
                 className="object-cover"
               />
              </div>
@@ -92,7 +140,7 @@ export default async function ListingDetail({ params }: { params: { id: string }
 
         {/* Content & Booking Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 relative">
-          
+
           {/* Main Content */}
           <div className="lg:col-span-8">
             <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-8 border-b border-black/20 pb-4">
@@ -119,7 +167,7 @@ export default async function ListingDetail({ params }: { params: { id: string }
           <div className="lg:col-span-4">
             <div className="sticky top-32 border-2 border-black p-12 bg-white flex flex-col">
               <h3 className="text-3xl font-black uppercase tracking-tighter mb-8 border-b-2 border-black pb-4">Reserve Space</h3>
-              
+
               <div className="flex flex-col space-y-6 mb-12">
                 <div className="flex flex-col border-b border-black pb-4">
                   <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">Check-in</label>
