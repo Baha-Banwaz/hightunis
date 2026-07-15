@@ -29,7 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${dmSans.variable} font-sans min-h-screen flex flex-col antialiased bg-white text-rich-black`}>
+      {/* suppressHydrationWarning: browser extensions inject attributes into <body> before React hydrates */}
+      <body
+        suppressHydrationWarning
+        className={`${dmSans.variable} font-sans min-h-screen flex flex-col antialiased bg-white text-rich-black`}
+      >
         {children}
       </body>
     </html>

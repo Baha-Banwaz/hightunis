@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, Wifi, Car, Plane, Wine, Anchor, Coffee } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+import BookingForm from "./BookingForm";
 
 export const revalidate = 3600;
 
@@ -24,7 +25,7 @@ const ICON_MAP: Record<string, ReactNode> = {
 const getProperty = cache(async (slug: string) => {
   const { data } = await supabase
     .from("properties")
-    .select("name, slug, category, location, price, description, image_url, gallery, amenities")
+    .select("id, name, slug, category, location, price, description, image_url, gallery, amenities")
     .eq("slug", slug)
     .single();
   return data;
@@ -165,24 +166,7 @@ export default async function ListingDetail({
 
           {/* Sticky Booking Widget */}
           <div className="lg:col-span-4">
-            <div className="sticky top-32 border-2 border-black p-12 bg-white flex flex-col">
-              <h3 className="text-3xl font-black uppercase tracking-tighter mb-8 border-b-2 border-black pb-4">Reserve Space</h3>
-
-              <div className="flex flex-col space-y-6 mb-12">
-                <div className="flex flex-col border-b border-black pb-4">
-                  <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">Check-in</label>
-                  <input type="date" className="bg-transparent border-none outline-none font-bold uppercase tracking-widest text-sm" />
-                </div>
-                <div className="flex flex-col border-b border-black pb-4">
-                  <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">Check-out</label>
-                  <input type="date" className="bg-transparent border-none outline-none font-bold uppercase tracking-widest text-sm" />
-                </div>
-              </div>
-
-              <button className="w-full bg-black text-white text-[10px] font-bold uppercase tracking-[3px] py-6 hover:bg-black/80 transition-colors">
-                Request Booking
-              </button>
-            </div>
+            <BookingForm propertyId={property.id} propertyName={property.name} />
           </div>
 
         </div>
