@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import ImageField from "../../components/ImageField";
 
 interface BlogPost {
   id: string;
@@ -167,7 +168,7 @@ export default function AdminBlog() {
             <div className="px-8 py-6 flex flex-col gap-5">
               <Field label="Title" value={form.title} onChange={(v) => setForm({ ...form, title: v, slug: generateSlug(v) })} />
               <Field label="Slug" value={form.slug} onChange={(v) => setForm({ ...form, slug: v })} />
-              <Field label="Cover Image URL" value={form.cover_image} onChange={(v) => setForm({ ...form, cover_image: v })} />
+              <ImageField folder="blog" label="Cover Image" value={form.cover_image} onChange={(v) => setForm({ ...form, cover_image: v })} />
               <Field label="Excerpt" value={form.excerpt} onChange={(v) => setForm({ ...form, excerpt: v })} />
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Content</label>

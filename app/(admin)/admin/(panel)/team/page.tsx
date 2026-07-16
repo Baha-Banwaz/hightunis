@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
+import ImageField from "../../components/ImageField";
 
 interface TeamMember {
   id: string;
@@ -131,7 +132,7 @@ export default function AdminTeam() {
             <div className="px-8 py-6 flex flex-col gap-5">
               <Field label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
               <Field label="Role / Title" value={form.role} onChange={(v) => setForm({ ...form, role: v })} />
-              <Field label="Photo URL" value={form.photo_url} onChange={(v) => setForm({ ...form, photo_url: v })} />
+              <ImageField folder="team" label="Photo" value={form.photo_url} onChange={(v) => setForm({ ...form, photo_url: v })} />
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Bio</label>
                 <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} rows={3}

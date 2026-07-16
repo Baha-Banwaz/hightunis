@@ -40,8 +40,8 @@ export default async function AboutPage() {
           
           <div className="lg:col-span-5 relative h-[60vh] md:h-[90vh] bg-stone">
              <Image
-              src="https://images.unsplash.com/photo-1542314831-c6a4d27ce6a2?fit=crop&w=1200&q=100"
-              alt="Mediterranean architecture"
+              src="https://oqzfowaqxgwquzofwxfg.supabase.co/storage/v1/object/public/media/agency/agency-terrace.webp"
+              alt="HighTunis — palms and modern architecture at dusk"
               fill
               sizes="(max-width: 1024px) 100vw, 42vw"
               className="object-cover"

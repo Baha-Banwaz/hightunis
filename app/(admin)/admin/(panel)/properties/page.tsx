@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import ImageField, { UploadButton } from "../../components/ImageField";
 
 interface Property {
   id: string;
@@ -282,11 +283,19 @@ export default function AdminProperties() {
                   className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none"
                 />
               </div>
-              <Field label="Main Image URL" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} />
+              <ImageField folder="properties" label="Main Image" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} />
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">
-                  Gallery — one image URL per line
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 block">
+                    Gallery — one image URL per line
+                  </label>
+                  <UploadButton
+                    folder="properties"
+                    multiple
+                    label="Upload images"
+                    onUploaded={(urls) => setGalleryInput((prev) => [prev.trim(), ...urls].filter(Boolean).join("\n"))}
+                  />
+                </div>
                 <textarea
                   value={galleryInput}
                   onChange={(e) => setGalleryInput(e.target.value)}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import ImageField from "../../components/ImageField";
 
 interface Service {
   id: string;
@@ -158,13 +159,7 @@ export default function AdminServices() {
                   className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none" />
               </div>
               <Field label="Icon (Lucide icon name)" value={form.icon} onChange={(v) => setForm({ ...form, icon: v })} />
-              <div>
-                <Field label="Image URL" value={form.image_url || ""} onChange={(v) => setForm({ ...form, image_url: v })} />
-                {form.image_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={form.image_url} alt="Preview" className="mt-3 h-32 w-full object-cover rounded-lg border border-black/10" />
-                ) : null}
-              </div>
+              <ImageField folder="services" label="Image" value={form.image_url || ""} onChange={(v) => setForm({ ...form, image_url: v })} />
               <Field label="Order" value={String(form.order)} onChange={(v) => setForm({ ...form, order: parseInt(v) || 0 })} />
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="w-5 h-5 accent-black" />

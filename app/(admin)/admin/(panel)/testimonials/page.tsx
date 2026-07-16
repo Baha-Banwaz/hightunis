@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import ImageField from "../../components/ImageField";
 
 interface Testimonial {
   id: string;
@@ -148,7 +149,7 @@ export default function AdminTestimonials() {
                 <textarea value={form.quote} onChange={(e) => setForm({ ...form, quote: e.target.value })} rows={4}
                   className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none" />
               </div>
-              <Field label="Photo URL" value={form.photo_url} onChange={(v) => setForm({ ...form, photo_url: v })} />
+              <ImageField folder="testimonials" label="Photo" value={form.photo_url} onChange={(v) => setForm({ ...form, photo_url: v })} />
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="w-5 h-5 accent-black" />
                 <span className="text-sm font-bold">Published</span>
