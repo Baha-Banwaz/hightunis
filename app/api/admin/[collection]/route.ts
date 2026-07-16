@@ -24,29 +24,46 @@ function resolveCollection(name: string) {
   return COLLECTION_ALIASES[name] ?? name;
 }
 
-// Marking an inquiry "booked" blocks its dates on the public site;
-// moving it back to new/contacted releases them. "finished" keeps them.
-async function syncBookingForInquiry(inquiryId: string, status: string) {
-  if (status === "booked") {
-    const { data: inquiry } = await supabaseAdmin
-      .from("inquiries")
-      .select("id, name, property_id, check_in, check_out")
-      .eq("id", inquiryId)
-      .single();
-    if (!inquiry?.property_id || !inquiry.check_in || !inquiry.check_out) return;
-    await supabaseAdmin.from("property_bookings").delete().eq("inquiry_id", inquiryId);
-    await supabaseAdmin.from("property_bookings").insert([
-      {
-        property_id: inquiry.property_id,
-        start_date: inquiry.check_in,
-        end_date: inquiry.check_out,
-        source: "inquiry",
-        inquiry_id: inquiryId,
-        note: inquiry.name,
-      },
-    ]);
-  } else if (status === "new" || status === "contacted") {
-    await supabaseAdmin.from("property_bookings").delete().eq("inquiry_id", inquiryId);
+// Keeps the availability calendar in sync with an inquiry after ANY edit:
+// "booked" (with property + dates) blocks the range, new/contacted releases
+// it, "finished" keeps whatever exists. Re-run after every inquiry update so
+// date or villa changes on a booked inquiry move the block too.
+async function syncBookingForInquiry(inquiryId: string) {
+  const { data: inquiry } = await supabaseAdmin
+    .from("inquiries")
+    .select("id, name, email, phone, status, property_id, check_in, check_out")
+    .eq("id", inquiryId)
+    .single();
+  if (!inquiry) return;
+
+  if (inquiry.status === "finished") return;
+
+  await supabaseAdmin.from("property_bookings").delete().eq("inquiry_id", inquiryId);
+
+  if (
+    inquiry.status === "booked" &&
+    inquiry.property_id &&
+    inquiry.check_in &&
+    inquiry.check_out
+  ) {
+    const row = {
+      property_id: inquiry.property_id,
+      start_date: inquiry.check_in,
+      end_date: inquiry.check_out,
+      source: "inquiry",
+      inquiry_id: inquiryId,
+      note: inquiry.name,
+      guest_name: inquiry.name,
+      guest_email: inquiry.email,
+      guest_phone: inquiry.phone,
+    };
+    const { error } = await supabaseAdmin.from("property_bookings").insert([row]);
+    if (error && /column/i.test(error.message)) {
+      // guest columns not migrated yet — insert without them
+      const { guest_name, guest_email, guest_phone, ...legacy } = row;
+      void guest_name; void guest_email; void guest_phone;
+      await supabaseAdmin.from("property_bookings").insert([legacy]);
+    }
   }
 }
 
@@ -158,8 +175,8 @@ export async function PUT(
   const { data, error } = await supabaseAdmin.from(collection).update(body).eq("id", id).select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  if (collection === "inquiries" && typeof body.status === "string") {
-    await syncBookingForInquiry(id, body.status);
+  if (collection === "inquiries") {
+    await syncBookingForInquiry(id);
   }
   revalidateCollection(collection);
   return NextResponse.json(data);
@@ -182,6 +199,11 @@ export async function DELETE(
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
+  // Deleting an inquiry also releases its blocked dates (FK only nulls them)
+  if (collection === "inquiries") {
+    await supabaseAdmin.from("property_bookings").delete().eq("inquiry_id", id);
+  }
 
   const { data, error } = await supabaseAdmin.from(collection).delete().eq("id", id).select();
 

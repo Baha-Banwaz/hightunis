@@ -92,6 +92,9 @@ CREATE TABLE IF NOT EXISTS public.property_bookings (
     source TEXT NOT NULL DEFAULT 'manual',      -- 'manual' | 'inquiry'
     inquiry_id UUID REFERENCES public.inquiries(id) ON DELETE SET NULL,
     note TEXT,
+    guest_name TEXT,
+    guest_email TEXT,
+    guest_phone TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT valid_range CHECK (end_date > start_date)
 );

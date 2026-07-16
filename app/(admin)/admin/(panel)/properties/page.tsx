@@ -103,7 +103,8 @@ export default function AdminProperties() {
     setSaving(true);
     const payload = {
       ...form,
-      slug: form.slug || generateSlug(form.name),
+      // always sanitize — a slug with spaces or symbols breaks the page URL
+      slug: generateSlug(form.slug || form.name),
       amenities: amenitiesInput.split(",").map((s) => s.trim()).filter(Boolean),
       gallery: galleryInput.split(/\n+/).map((s) => s.trim()).filter(Boolean),
     };
@@ -252,16 +253,23 @@ export default function AdminProperties() {
               <Field label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v, slug: generateSlug(v) })} />
               <Field label="Slug" value={form.slug} onChange={(v) => setForm({ ...form, slug: v })} />
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Category</label>
-                <select
+                <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">
+                  Category — pick one or type a new one
+                </label>
+                <input
+                  list="category-suggestions"
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                   className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                />
+                <datalist id="category-suggestions">
+                  {Array.from(new Set([...CATEGORIES, ...properties.map((p) => p.category).filter(Boolean)])).map((c) => (
+                    <option key={c} value={c} />
                   ))}
-                </select>
+                </datalist>
+                <p className="text-[10px] text-black/40 font-semibold mt-2">
+                  The website filter tabs are built from these categories — keep the spelling consistent.
+                </p>
               </div>
               <Field label="Location" value={form.location} onChange={(v) => setForm({ ...form, location: v })} />
               <Field label="Price" value={form.price} onChange={(v) => setForm({ ...form, price: v })} />

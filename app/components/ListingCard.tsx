@@ -20,7 +20,7 @@ export default function ListingCard({
   category,
 }: ListingCardProps) {
   return (
-    <div className="group flex flex-col cursor-pointer h-full">
+    <Link href={`/listings/${slug}`} className="group flex flex-col cursor-pointer h-full">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone mb-6">
         <Image
           src={imageUrl}
@@ -33,7 +33,7 @@ export default function ListingCard({
           {category}
         </div>
       </div>
-      
+
       <div className="flex flex-col">
         <h3 className="text-3xl font-black tracking-tighter uppercase text-black mb-2 group-hover:text-black/50 transition-colors">
           {title}
@@ -43,11 +43,11 @@ export default function ListingCard({
             <span className="text-xs font-bold uppercase tracking-widest text-black/50">{location}</span>
             <span className="text-lg font-bold text-black mt-1 uppercase tracking-tight">{price}</span>
           </div>
-          <Link href={`/listings/${slug}`} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] hover:opacity-50 transition-opacity">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] group-hover:opacity-50 transition-opacity">
             Explore <ArrowRight size={14} />
-          </Link>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

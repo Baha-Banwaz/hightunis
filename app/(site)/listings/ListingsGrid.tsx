@@ -4,8 +4,6 @@ import { useState } from "react";
 import ListingCard from "@/app/components/ListingCard";
 import { motion, AnimatePresence } from "framer-motion";
 
-const CATEGORIES = ["All", "Villas", "Hotels", "Yachts", "Restaurants"];
-
 export interface ListingSummary {
   id: string;
   name: string;
@@ -19,6 +17,9 @@ export interface ListingSummary {
 export default function ListingsGrid({ properties }: { properties: ListingSummary[] }) {
   const [activeCategory, setActiveCategory] = useState("All");
 
+  // Tabs adapt to whatever categories actually exist in the data
+  const categories = ["All", ...Array.from(new Set(properties.map((p) => p.category).filter(Boolean)))];
+
   const filteredListings =
     activeCategory === "All"
       ? properties
@@ -28,7 +29,7 @@ export default function ListingsGrid({ properties }: { properties: ListingSummar
     <>
       {/* Filter */}
       <div className="flex flex-wrap gap-4 mb-16">
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
