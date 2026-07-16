@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.services (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     icon TEXT,
+    image_url TEXT,
     "order" INTEGER DEFAULT 0,
     published BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT now()
@@ -75,8 +76,24 @@ CREATE TABLE IF NOT EXISTS public.inquiries (
     type TEXT NOT NULL,
     message TEXT NOT NULL,
     property_id UUID REFERENCES public.properties(id),
-    status TEXT DEFAULT 'new',
+    status TEXT DEFAULT 'new',            -- new | contacted | booked | finished
+    phone TEXT,
+    check_in DATE,
+    check_out DATE,
     created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Property Bookings Table (blocked/booked date ranges per property)
+CREATE TABLE IF NOT EXISTS public.property_bookings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    property_id UUID NOT NULL REFERENCES public.properties(id) ON DELETE CASCADE,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    source TEXT NOT NULL DEFAULT 'manual',      -- 'manual' | 'inquiry'
+    inquiry_id UUID REFERENCES public.inquiries(id) ON DELETE SET NULL,
+    note TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    CONSTRAINT valid_range CHECK (end_date > start_date)
 );
 
 
@@ -89,6 +106,7 @@ ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inquiries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.property_bookings ENABLE ROW LEVEL SECURITY;
 
 -- Public (anon key) may only READ published content. All writes go through
 -- the admin API using the service role, which bypasses RLS. Inquiries are
@@ -105,6 +123,9 @@ CREATE POLICY "public_read_team" ON public.team
   FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "public_insert_inquiries" ON public.inquiries
   FOR INSERT TO anon, authenticated WITH CHECK (status = 'new');
+-- Public reads booked date ranges to grey out unavailable dates (no PII)
+CREATE POLICY "public_read_property_bookings" ON public.property_bookings
+  FOR SELECT TO anon, authenticated USING (true);
 
 -- Indexes matching the app's query patterns
 CREATE INDEX IF NOT EXISTS idx_properties_pub_feat_order ON public.properties (published, featured, "order");
@@ -113,6 +134,7 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_pub            ON public.blog_posts (p
 CREATE INDEX IF NOT EXISTS idx_testimonials_pub_created  ON public.testimonials (published, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_team_order                ON public.team ("order");
 CREATE INDEX IF NOT EXISTS idx_inquiries_status_created  ON public.inquiries (status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_property_bookings_prop_dates ON public.property_bookings (property_id, start_date, end_date);
 
 
 -- 3. Insert Seed Data (Properties)

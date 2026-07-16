@@ -10,6 +10,7 @@ import {
   Users,
   MessageSquareQuote,
   Inbox,
+  CalendarDays,
   LogOut,
   ArrowLeft,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/admin/team", label: "Team", icon: Users },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
   { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
+  { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
 ];
 
 export default function AdminSidebar() {

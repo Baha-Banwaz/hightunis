@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, cache } from "react";
 import type { Metadata } from "next";
@@ -6,6 +5,7 @@ import { ArrowLeft, Wifi, Car, Plane, Wine, Anchor, Coffee } from "lucide-react"
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import BookingForm from "./BookingForm";
+import PropertyGallery from "./PropertyGallery";
 
 export const revalidate = 3600;
 
@@ -75,12 +75,8 @@ export default async function ListingDetail({
   }
 
   const amenities = Array.isArray(property.amenities) ? property.amenities : [];
-  const gallery = Array.isArray(property.gallery) && property.gallery.length > 0
-    ? property.gallery
-    : [
-        "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1200&auto=format&fit=crop"
-      ];
+  const gallery: string[] = Array.isArray(property.gallery) ? property.gallery : [];
+  const galleryImages = Array.from(new Set([property.image_url, ...gallery].filter(Boolean)));
 
   return (
     <div className="bg-white min-h-screen pt-32 pb-24 text-black">
@@ -105,39 +101,8 @@ export default async function ListingDetail({
           </div>
         </div>
 
-        {/* Masonry / Parallax Layout Gallery */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-24">
-          <div className="lg:col-span-8 relative h-[60vh] md:h-[80vh] w-full bg-stone">
-             <Image
-              src={property.image_url}
-              alt={property.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 66vw"
-              className="object-cover"
-              priority
-            />
-          </div>
-          <div className="lg:col-span-4 flex flex-col gap-12">
-             <div className="relative h-[30vh] md:h-[40vh] w-full bg-stone">
-               <Image
-                src={gallery[0]}
-                alt="Interior"
-                fill
-                sizes="(max-width: 1024px) 100vw, 33vw"
-                className="object-cover"
-              />
-             </div>
-             <div className="relative h-[30vh] md:h-[40vh] w-full bg-stone">
-               <Image
-                src={gallery[1] || gallery[0]}
-                alt="Exterior"
-                fill
-                sizes="(max-width: 1024px) 100vw, 33vw"
-                className="object-cover"
-              />
-             </div>
-          </div>
-        </div>
+        {/* Catalog Gallery — drag or use the arrows */}
+        <PropertyGallery images={galleryImages} name={property.name} />
 
         {/* Content & Booking Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 relative">

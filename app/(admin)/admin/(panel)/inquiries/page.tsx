@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Inbox, Mail, Clock } from "lucide-react";
+import { Inbox, Mail, Clock, Phone, CalendarDays } from "lucide-react";
 
 interface Inquiry {
   id: string;
@@ -11,16 +11,19 @@ interface Inquiry {
   message: string;
   property_id: string | null;
   status: string;
+  phone?: string | null;
+  check_in?: string | null;
+  check_out?: string | null;
   created_at: string;
 }
 
-const STATUS_OPTIONS = ["new", "contacted", "in-progress", "closed"];
+const STATUS_OPTIONS = ["new", "contacted", "booked", "finished"];
 
 const STATUS_COLORS: Record<string, string> = {
   new: "bg-blue-100 text-blue-700",
   contacted: "bg-yellow-100 text-yellow-700",
-  "in-progress": "bg-purple-100 text-purple-700",
-  closed: "bg-green-100 text-green-700",
+  booked: "bg-green-100 text-green-700",
+  finished: "bg-stone-200 text-stone-600",
 };
 
 export default function AdminInquiries() {
@@ -108,7 +111,10 @@ export default function AdminInquiries() {
                   onChange={(e) => updateStatus(inq.id, e.target.value)}
                   className="text-xs font-bold uppercase tracking-[2px] border border-black/20 rounded-lg px-3 py-2 bg-white outline-none cursor-pointer"
                 >
-                  {STATUS_OPTIONS.map((s) => (
+                  {(STATUS_OPTIONS.includes(inq.status)
+                    ? STATUS_OPTIONS
+                    : [inq.status, ...STATUS_OPTIONS]
+                  ).map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
@@ -118,7 +124,21 @@ export default function AdminInquiries() {
                   Subject: {inq.type}
                 </p>
               )}
-              <p className="text-sm text-black/70 leading-relaxed">{inq.message}</p>
+              {(inq.phone || inq.check_in) && (
+                <div className="flex flex-wrap items-center gap-3 mb-3">
+                  {inq.phone && (
+                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] bg-black/5 px-3 py-1.5 rounded-full">
+                      <Phone size={11} /> {inq.phone}
+                    </span>
+                  )}
+                  {inq.check_in && inq.check_out && (
+                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] bg-black text-white px-3 py-1.5 rounded-full">
+                      <CalendarDays size={11} /> {inq.check_in} → {inq.check_out}
+                    </span>
+                  )}
+                </div>
+              )}
+              <p className="text-sm text-black/70 leading-relaxed whitespace-pre-line">{inq.message}</p>
             </div>
           ))}
         </div>

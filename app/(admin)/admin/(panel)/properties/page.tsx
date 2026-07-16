@@ -43,6 +43,7 @@ export default function AdminProperties() {
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [amenitiesInput, setAmenitiesInput] = useState("");
+  const [galleryInput, setGalleryInput] = useState("");
   const [saving, setSaving] = useState(false);
 
 
@@ -72,6 +73,7 @@ export default function AdminProperties() {
   const openNew = () => {
     setForm(EMPTY_FORM);
     setAmenitiesInput("");
+    setGalleryInput("");
     setEditing(null);
     setShowForm(true);
   };
@@ -92,6 +94,7 @@ export default function AdminProperties() {
       order: p.order,
     });
     setAmenitiesInput((p.amenities || []).join(", "));
+    setGalleryInput((p.gallery || []).join("\n"));
     setEditing(p.id);
     setShowForm(true);
   };
@@ -102,6 +105,7 @@ export default function AdminProperties() {
       ...form,
       slug: form.slug || generateSlug(form.name),
       amenities: amenitiesInput.split(",").map((s) => s.trim()).filter(Boolean),
+      gallery: galleryInput.split(/\n+/).map((s) => s.trim()).filter(Boolean),
     };
 
     const method = editing ? "PUT" : "POST";
@@ -270,7 +274,27 @@ export default function AdminProperties() {
                   className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none"
                 />
               </div>
-              <Field label="Image URL" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} />
+              <Field label="Main Image URL" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} />
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">
+                  Gallery — one image URL per line
+                </label>
+                <textarea
+                  value={galleryInput}
+                  onChange={(e) => setGalleryInput(e.target.value)}
+                  rows={4}
+                  placeholder={"https://...jpg\nhttps://...jpg"}
+                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-xs font-mono outline-none focus:border-black transition-colors resize-y"
+                />
+                {galleryInput.trim() && (
+                  <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+                    {galleryInput.split(/\n+/).map((u) => u.trim()).filter(Boolean).map((url, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={i} src={url} alt={`Gallery ${i + 1}`} className="h-20 w-28 object-cover rounded-lg border border-black/10 shrink-0" />
+                    ))}
+                  </div>
+                )}
+              </div>
               <Field label="Amenities (comma separated)" value={amenitiesInput} onChange={setAmenitiesInput} />
               <Field label="Order" value={String(form.order)} onChange={(v) => setForm({ ...form, order: parseInt(v) || 0 })} />
               <div className="flex gap-6">

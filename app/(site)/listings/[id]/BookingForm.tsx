@@ -1,12 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import DatePicker, { formatDate } from "@/app/components/DatePicker";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 // 8–15 digits, optional leading +, spaces/dashes/dots/parentheses allowed
 const PHONE_RE = /^\+?[\d\s().-]{8,20}$/;
+
+interface BlockedRange {
+  start: Date;
+  end: Date; // exclusive — the checkout day itself is free for a new check-in
+}
+
+function parseISODate(value: string): Date {
+  const [y, m, d] = value.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function toISODate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
 export default function BookingForm({
   propertyId,
@@ -21,9 +35,39 @@ export default function BookingForm({
   const [message, setMessage] = useState("");
   const [checkIn, setCheckIn] = useState<Date | null>(null);
   const [checkOut, setCheckOut] = useState<Date | null>(null);
+  const [blocked, setBlocked] = useState<BlockedRange[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Live availability: fetched on mount so it is never stale ISR data.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("property_bookings")
+        .select("start_date, end_date")
+        .eq("property_id", propertyId)
+        .gte("end_date", toISODate(new Date()));
+      if (!cancelled && data) {
+        setBlocked(
+          data.map((b) => ({
+            start: parseISODate(b.start_date),
+            end: parseISODate(b.end_date),
+          }))
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [propertyId]);
+
+  const isNightBlocked = (date: Date) =>
+    blocked.some((r) => date >= r.start && date < r.end);
+
+  const spanOverlapsBooking = (from: Date, to: Date) =>
+    blocked.some((r) => from < r.end && to > r.start);
 
   const validate = () => {
     const next: Record<string, string> = {};
@@ -37,6 +81,9 @@ export default function BookingForm({
     if (!checkOut) next.checkOut = "Select a check-out date";
     if (checkIn && checkOut && checkOut <= checkIn) {
       next.checkOut = "Check-out must be after check-in";
+    }
+    if (checkIn && checkOut && checkOut > checkIn && spanOverlapsBooking(checkIn, checkOut)) {
+      next.checkOut = "Those dates include unavailable nights";
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -57,15 +104,27 @@ export default function BookingForm({
       .filter(Boolean)
       .join("\n");
 
-    const { error } = await supabase.from("inquiries").insert([
+    const base = {
+      name: name.trim(),
+      email: email.trim(),
+      type: `Booking — ${propertyName}`,
+      message: details,
+      property_id: propertyId,
+    };
+
+    let { error } = await supabase.from("inquiries").insert([
       {
-        name: name.trim(),
-        email: email.trim(),
-        type: `Booking — ${propertyName}`,
-        message: details,
-        property_id: propertyId,
+        ...base,
+        phone: phone.trim(),
+        check_in: checkIn ? toISODate(checkIn) : null,
+        check_out: checkOut ? toISODate(checkOut) : null,
       },
     ]);
+
+    // Fallback for a database that hasn't run the bookings migration yet
+    if (error && /column|schema cache/i.test(error.message)) {
+      ({ error } = await supabase.from("inquiries").insert([base]));
+    }
 
     setSubmitting(false);
     if (!error) {
@@ -140,6 +199,7 @@ export default function BookingForm({
               setErrors((p) => ({ ...p, checkIn: "" }));
               if (checkOut && checkOut <= d) setCheckOut(null);
             }}
+            isDateDisabled={isNightBlocked}
           />
           {errors.checkIn && <p className={errorClass}>{errors.checkIn}</p>}
         </div>
@@ -150,6 +210,7 @@ export default function BookingForm({
             value={checkOut}
             onChange={(d) => { setCheckOut(d); setErrors((p) => ({ ...p, checkOut: "" })); }}
             minDate={checkIn ? new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate() + 1) : null}
+            isDateDisabled={isNightBlocked}
           />
           {errors.checkOut && <p className={errorClass}>{errors.checkOut}</p>}
         </div>

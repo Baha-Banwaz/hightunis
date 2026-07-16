@@ -11,8 +11,44 @@ const ALLOWED_COLLECTIONS = [
   "blog_posts", // Note: The admin frontend calls it blog but table is blog_posts. We'll handle this mapping if necessary, or just use the right table name from the client.
   "team",
   "testimonials",
-  "inquiries"
+  "inquiries",
+  "property_bookings"
 ];
+
+const COLLECTION_ALIASES: Record<string, string> = {
+  blog: "blog_posts",
+  bookings: "property_bookings",
+};
+
+function resolveCollection(name: string) {
+  return COLLECTION_ALIASES[name] ?? name;
+}
+
+// Marking an inquiry "booked" blocks its dates on the public site;
+// moving it back to new/contacted releases them. "finished" keeps them.
+async function syncBookingForInquiry(inquiryId: string, status: string) {
+  if (status === "booked") {
+    const { data: inquiry } = await supabaseAdmin
+      .from("inquiries")
+      .select("id, name, property_id, check_in, check_out")
+      .eq("id", inquiryId)
+      .single();
+    if (!inquiry?.property_id || !inquiry.check_in || !inquiry.check_out) return;
+    await supabaseAdmin.from("property_bookings").delete().eq("inquiry_id", inquiryId);
+    await supabaseAdmin.from("property_bookings").insert([
+      {
+        property_id: inquiry.property_id,
+        start_date: inquiry.check_in,
+        end_date: inquiry.check_out,
+        source: "inquiry",
+        inquiry_id: inquiryId,
+        note: inquiry.name,
+      },
+    ]);
+  } else if (status === "new" || status === "contacted") {
+    await supabaseAdmin.from("property_bookings").delete().eq("inquiry_id", inquiryId);
+  }
+}
 
 // Helper to authenticate via the HTTP-only session cookie set by /api/admin/login
 async function isAuthenticated() {
@@ -53,7 +89,7 @@ export async function GET(
 
   const { searchParams } = new URL(req.url);
   const resolvedParams = await params;
-  const collection = resolvedParams.collection === "blog" ? "blog_posts" : resolvedParams.collection;
+  const collection = resolveCollection(resolvedParams.collection);
 
   if (!ALLOWED_COLLECTIONS.includes(collection)) {
     return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
@@ -87,7 +123,7 @@ export async function POST(
   }
 
   const resolvedParams = await params;
-  const collection = resolvedParams.collection === "blog" ? "blog_posts" : resolvedParams.collection;
+  const collection = resolveCollection(resolvedParams.collection);
   if (!ALLOWED_COLLECTIONS.includes(collection)) {
     return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
   }
@@ -109,7 +145,7 @@ export async function PUT(
   }
 
   const resolvedParams = await params;
-  const collection = resolvedParams.collection === "blog" ? "blog_posts" : resolvedParams.collection;
+  const collection = resolveCollection(resolvedParams.collection);
   if (!ALLOWED_COLLECTIONS.includes(collection)) {
     return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
   }
@@ -122,6 +158,9 @@ export async function PUT(
   const { data, error } = await supabaseAdmin.from(collection).update(body).eq("id", id).select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (collection === "inquiries" && typeof body.status === "string") {
+    await syncBookingForInquiry(id, body.status);
+  }
   revalidateCollection(collection);
   return NextResponse.json(data);
 }
@@ -135,7 +174,7 @@ export async function DELETE(
   }
 
   const resolvedParams = await params;
-  const collection = resolvedParams.collection === "blog" ? "blog_posts" : resolvedParams.collection;
+  const collection = resolveCollection(resolvedParams.collection);
   if (!ALLOWED_COLLECTIONS.includes(collection)) {
     return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
   }

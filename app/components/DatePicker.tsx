@@ -23,11 +23,13 @@ export default function DatePicker({
   value,
   onChange,
   minDate,
+  isDateDisabled,
 }: {
   label: string;
   value: Date | null;
   onChange: (date: Date) => void;
   minDate?: Date | null;
+  isDateDisabled?: (date: Date) => boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => value ?? new Date());
@@ -52,7 +54,10 @@ export default function DatePicker({
   const today = startOfDay(new Date());
   const floor = minDate ? startOfDay(minDate) : today;
 
-  const isDisabled = (day: number) => startOfDay(new Date(year, month, day)) < floor;
+  const isDisabled = (day: number) => {
+    const date = startOfDay(new Date(year, month, day));
+    return date < floor || (isDateDisabled?.(date) ?? false);
+  };
   const isSelected = (day: number) =>
     !!value &&
     value.getFullYear() === year &&

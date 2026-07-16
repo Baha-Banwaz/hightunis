@@ -8,6 +8,7 @@ interface Service {
   title: string;
   description: string;
   icon: string;
+  image_url: string | null;
   order: number;
   published: boolean;
 }
@@ -16,6 +17,7 @@ const EMPTY: Omit<Service, "id"> = {
   title: "",
   description: "",
   icon: "",
+  image_url: "",
   order: 0,
   published: true,
 };
@@ -51,7 +53,7 @@ export default function AdminServices() {
 
   const openNew = () => { setForm(EMPTY); setEditing(null); setShowForm(true); };
   const openEdit = (s: Service) => {
-    setForm({ title: s.title, description: s.description, icon: s.icon || "", order: s.order, published: s.published });
+    setForm({ title: s.title, description: s.description, icon: s.icon || "", image_url: s.image_url || "", order: s.order, published: s.published });
     setEditing(s.id);
     setShowForm(true);
   };
@@ -156,6 +158,13 @@ export default function AdminServices() {
                   className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none" />
               </div>
               <Field label="Icon (Lucide icon name)" value={form.icon} onChange={(v) => setForm({ ...form, icon: v })} />
+              <div>
+                <Field label="Image URL" value={form.image_url || ""} onChange={(v) => setForm({ ...form, image_url: v })} />
+                {form.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.image_url} alt="Preview" className="mt-3 h-32 w-full object-cover rounded-lg border border-black/10" />
+                ) : null}
+              </div>
               <Field label="Order" value={String(form.order)} onChange={(v) => setForm({ ...form, order: parseInt(v) || 0 })} />
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="w-5 h-5 accent-black" />

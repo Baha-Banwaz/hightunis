@@ -48,7 +48,7 @@ export default async function ServicesPage() {
              <div key={service.id} className={`flex flex-col ${idx % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-24`}>
                 <div className="w-full md:w-1/2 relative h-[50vh] md:h-[70vh] bg-stone">
                   <Image
-                    src={defaultImages[idx % defaultImages.length]}
+                    src={service.image_url || defaultImages[idx % defaultImages.length]}
                     alt={service.title}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
