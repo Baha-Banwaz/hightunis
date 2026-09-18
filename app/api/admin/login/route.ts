@@ -68,7 +68,11 @@ export async function POST(req: Request) {
   (await cookies()).set(ADMIN_COOKIE, await createSessionToken(), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    // strict: the admin is only ever reached by typing the URL or by
+    // navigation from within the site, so nothing legitimate needs the
+    // cookie on a cross-site request. Also removes the CSRF surface on
+    // the /api/admin write routes.
+    sameSite: "strict",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
@@ -76,6 +80,13 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  (await cookies()).delete(ADMIN_COOKIE);
+  // Same attributes as the set above, so the browser actually clears it.
+  (await cookies()).set(ADMIN_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  });
   return NextResponse.json({ ok: true });
 }
