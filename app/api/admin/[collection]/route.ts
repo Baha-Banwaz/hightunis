@@ -89,43 +89,120 @@ function resolveCollection(name: string) {
 // "booked" (with property + dates) blocks the range, new/contacted releases
 // it, "finished" keeps whatever exists. Re-run after every inquiry update so
 // date or villa changes on a booked inquiry move the block too.
-async function syncBookingForInquiry(inquiryId: string) {
-  const { data: inquiry } = await supabaseAdmin
+// The inquiry row is already updated by the time this runs, so a failure here
+// leaves the two out of step: the inquiry says "booked" while the calendar has
+// nothing blocked. Every exit reports whether the calendar actually matches the
+// inquiry, and the caller turns a false into a non-2xx so the admin is never
+// told the dates were blocked when they were not.
+type SyncResult =
+  | { ok: true }
+  // "failed" is a database problem; "incomplete" is missing data on the inquiry.
+  | { ok: false; kind: "failed" | "incomplete"; reason: string };
+
+async function syncBookingForInquiry(inquiryId: string): Promise<SyncResult> {
+  const { data: inquiry, error: readError } = await supabaseAdmin
     .from("inquiries")
     .select("id, name, email, phone, status, property_id, check_in, check_out")
     .eq("id", inquiryId)
     .single();
-  if (!inquiry) return;
 
-  if (inquiry.status === "finished") return;
+  if (readError) {
+    console.error("[sync] could not re-read inquiry", {
+      inquiryId,
+      code: readError.code ?? null,
+      message: readError.message,
+      details: readError.details ?? null,
+    });
+    return {
+      ok: false,
+      kind: "failed",
+      reason:
+        "Your changes were saved, but the availability calendar could not be checked. Reload and confirm the blocked dates.",
+    };
+  }
+  if (!inquiry) return { ok: true };
 
-  await supabaseAdmin.from("property_bookings").delete().eq("inquiry_id", inquiryId);
+  // "finished" keeps whatever block already exists, so there is nothing to do.
+  if (inquiry.status === "finished") return { ok: true };
 
-  if (
+  const { error: deleteError } = await supabaseAdmin
+    .from("property_bookings")
+    .delete()
+    .eq("inquiry_id", inquiryId);
+
+  if (deleteError) {
+    console.error("[sync] could not clear existing block", {
+      inquiryId,
+      code: deleteError.code ?? null,
+      message: deleteError.message,
+      details: deleteError.details ?? null,
+    });
+    return {
+      ok: false,
+      kind: "failed",
+      reason:
+        "Your changes were saved, but the previously blocked dates could not be cleared. The calendar may still show the old range.",
+    };
+  }
+
+  const shouldBlock =
     inquiry.status === "booked" &&
     inquiry.property_id &&
     inquiry.check_in &&
-    inquiry.check_out
-  ) {
-    const row = {
-      property_id: inquiry.property_id,
-      start_date: inquiry.check_in,
-      end_date: inquiry.check_out,
-      source: "inquiry",
-      inquiry_id: inquiryId,
-      note: inquiry.name,
-      guest_name: inquiry.name,
-      guest_email: inquiry.email,
-      guest_phone: inquiry.phone,
-    };
-    const { error } = await supabaseAdmin.from("property_bookings").insert([row]);
-    if (error && /column/i.test(error.message)) {
-      // guest columns not migrated yet — insert without them
-      const { guest_name, guest_email, guest_phone, ...legacy } = row;
-      void guest_name; void guest_email; void guest_phone;
-      await supabaseAdmin.from("property_bookings").insert([legacy]);
+    inquiry.check_out;
+
+  if (!shouldBlock) {
+    // Marking an inquiry booked from the list view skips the edit form's
+    // validation, so this is reachable: booked, but nothing to block.
+    if (inquiry.status === "booked") {
+      return {
+        ok: false,
+        kind: "incomplete",
+        reason:
+          "Saved as booked, but no dates were blocked. A booked inquiry needs a property, a check-in and a check-out. Open it and fill those in.",
+      };
     }
+    return { ok: true };
   }
+
+  const row = {
+    property_id: inquiry.property_id,
+    start_date: inquiry.check_in,
+    end_date: inquiry.check_out,
+    source: "inquiry",
+    inquiry_id: inquiryId,
+    note: inquiry.name,
+    guest_name: inquiry.name,
+    guest_email: inquiry.email,
+    guest_phone: inquiry.phone,
+  };
+
+  let insertError = (await supabaseAdmin.from("property_bookings").insert([row])).error;
+
+  if (insertError && /column/i.test(insertError.message)) {
+    // guest columns not migrated yet — insert without them
+    const { guest_name, guest_email, guest_phone, ...legacy } = row;
+    void guest_name; void guest_email; void guest_phone;
+    insertError = (await supabaseAdmin.from("property_bookings").insert([legacy])).error;
+  }
+
+  if (insertError) {
+    console.error("[sync] could not block dates", {
+      inquiryId,
+      propertyId: inquiry.property_id,
+      range: `${inquiry.check_in} -> ${inquiry.check_out}`,
+      code: insertError.code ?? null,
+      message: insertError.message,
+      details: insertError.details ?? null,
+    });
+    return {
+      ok: false,
+      kind: "failed",
+      reason: `Saved as booked, but the dates were NOT blocked on the calendar: ${insertError.message}`,
+    };
+  }
+
+  return { ok: true };
 }
 
 // Helper to authenticate via the HTTP-only session cookie set by /api/admin/login
@@ -251,9 +328,20 @@ export async function PUT(
     .select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
   if (collection === "inquiries") {
-    await syncBookingForInquiry(id);
+    const sync = await syncBookingForInquiry(id);
+    if (!sync.ok) {
+      // The inquiry row itself was written, so say so plainly rather than
+      // reporting a clean success the calendar does not back up.
+      revalidateCollection(collection);
+      return NextResponse.json(
+        { error: sync.reason, inquiryUpdated: true, calendarUpdated: false },
+        { status: sync.kind === "incomplete" ? 409 : 500 }
+      );
+    }
   }
+
   revalidateCollection(collection);
   return NextResponse.json(data);
 }

@@ -49,6 +49,8 @@ export default function AdminInquiries() {
   const [editing, setEditing] = useState<Inquiry | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  // Surfaces failures from the inline status dropdown, which has no modal.
+  const [listError, setListError] = useState("");
 
   // Edit form state
   const [fName, setFName] = useState("");
@@ -88,11 +90,20 @@ export default function AdminInquiries() {
     properties.find((p) => p.id === id)?.name ?? null;
 
   const updateStatus = async (id: string, status: string) => {
-    await fetch(`/api/admin/inquiries?id=${id}`, {
+    setListError("");
+    const res = await fetch(`/api/admin/inquiries?id=${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
-    });
+    }).catch(() => null);
+
+    if (!res?.ok) {
+      const body = await res?.json().catch(() => null);
+      // The inquiry may well have saved and only the calendar sync failed;
+      // the message from the API says which.
+      setListError(body?.error ?? "Could not update this inquiry. Please try again.");
+    }
+
     fetch_();
   };
 
@@ -172,6 +183,21 @@ export default function AdminInquiries() {
           </p>
         </div>
       </div>
+
+      {listError && (
+        <div className="mb-6 border-2 border-red-500 bg-red-50 p-4 flex items-start justify-between gap-4">
+          <p className="text-xs font-bold uppercase tracking-[2px] text-red-600 leading-[1.6]">
+            {listError}
+          </p>
+          <button
+            type="button"
+            onClick={() => setListError("")}
+            className="text-[10px] font-bold uppercase tracking-[2px] text-red-600/60 hover:text-red-600 shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-sm font-bold uppercase tracking-widest text-black/30 animate-pulse">Loading...</div>
