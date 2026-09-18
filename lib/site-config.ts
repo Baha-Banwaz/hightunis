@@ -1,6 +1,9 @@
 // Central place for brand facts and contact details used across the site.
+// The fallback only applies if NEXT_PUBLIC_SITE_URL is unset. It feeds
+// metadataBase, every canonical and OG URL, sitemap.xml and robots.txt, so it
+// must be a domain we actually own.
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://high-tunis.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://hightunis-xi.vercel.app";
 
 export const SITE_CONFIG = {
   name: "HighTunis",
