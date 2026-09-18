@@ -1,0 +1,232 @@
+import { z } from "zod";
+
+// Every payload that reaches the database passes through one of these schemas.
+// z.object() strips unknown keys, so a client cannot write a column it was
+// never meant to touch (e.g. `status` on a public inquiry, or `id`).
+
+/** Strips C0 control characters (tab and newline survive) and trims. */
+const clean = (value: string) =>
+  value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim();
+
+const text = (max: number) => z.string().transform(clean).pipe(z.string().max(max));
+
+const requiredText = (max: number, label: string) =>
+  z
+    .string()
+    .transform(clean)
+    .pipe(z.string().min(1, `${label} is required`).max(max, `${label} is too long`));
+
+/** "" and null both mean "no value" in the admin forms. */
+const optionalText = (max: number) =>
+  z
+    .union([z.string(), z.null()])
+    .transform((v) => (v === null ? null : clean(v) || null))
+    .pipe(z.string().max(max).nullable());
+
+/** Absolute http(s) URL or a root-relative path. Blocks javascript: and data:. */
+const imageUrl = (max = 2048) =>
+  z
+    .union([z.string(), z.null()])
+    .transform((v) => (v === null ? null : clean(v) || null))
+    .pipe(
+      z
+        .string()
+        .max(max)
+        .refine((v) => /^https?:\/\//i.test(v) || /^\/[^/]/.test(v), {
+          message: "Must be an http(s) URL or a root-relative path",
+        })
+        .nullable()
+    );
+
+// 8-15 digits, optional leading +, punctuation allowed. Mirrors the client regex.
+const phone = z
+  .string()
+  .transform(clean)
+  .pipe(
+    z.string().refine((v) => {
+      if (!/^\+?[\d\s().-]{8,20}$/.test(v)) return false;
+      const digits = v.replace(/\D/g, "").length;
+      return digits >= 8 && digits <= 15;
+    }, "Enter a valid phone number")
+  );
+
+const isoDate = z.iso.date();
+
+const slug = z
+  .string()
+  .transform((v) => clean(v).toLowerCase())
+  .pipe(
+    z
+      .string()
+      .min(1, "Slug is required")
+      .max(120)
+      .regex(
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        "Slug may contain lowercase letters, numbers and hyphens only"
+      )
+  );
+
+const email = z
+  .string()
+  .transform(clean)
+  .pipe(z.email("Enter a valid email address").max(254));
+
+// ---------------------------------------------------------------------------
+// Public (unauthenticated) input
+// ---------------------------------------------------------------------------
+
+/** Bots fill hidden fields; humans leave them empty. */
+const honeypot = z
+  .string()
+  .max(0, "Rejected")
+  .optional();
+
+export const contactInquirySchema = z.object({
+  kind: z.literal("contact"),
+  name: requiredText(120, "Name"),
+  email,
+  type: requiredText(120, "Subject"),
+  message: requiredText(5000, "Message"),
+  company: honeypot,
+});
+
+export const bookingInquirySchema = z.object({
+  kind: z.literal("booking"),
+  name: requiredText(120, "Name"),
+  email,
+  phone,
+  propertyId: z.uuid("Unknown property"),
+  checkIn: isoDate,
+  checkOut: isoDate,
+  message: text(2000).optional(),
+  company: honeypot,
+});
+
+export const publicInquirySchema = z.discriminatedUnion("kind", [
+  contactInquirySchema,
+  bookingInquirySchema,
+]);
+
+export type PublicInquiry = z.infer<typeof publicInquirySchema>;
+
+export const availabilityQuerySchema = z.object({
+  propertyId: z.uuid(),
+});
+
+// ---------------------------------------------------------------------------
+// Admin input (authenticated, but still validated and column-scoped)
+// ---------------------------------------------------------------------------
+
+export const INQUIRY_STATUSES = ["new", "contacted", "booked", "finished"] as const;
+
+const propertyBase = z.object({
+  name: requiredText(200, "Name"),
+  slug,
+  category: requiredText(80, "Category"),
+  location: requiredText(160, "Location"),
+  price: requiredText(80, "Price"),
+  description: requiredText(8000, "Description"),
+  image_url: imageUrl().pipe(z.string({ error: "A main image is required" })),
+  gallery: z.array(z.string().max(2048)).max(40).default([]),
+  amenities: z
+    .array(z.string().transform(clean).pipe(z.string().max(120)))
+    .max(60)
+    .default([]),
+  featured: z.boolean().default(false),
+  published: z.boolean().default(true),
+  order: z.coerce.number().int().min(0).max(100000).default(0),
+});
+
+const serviceBase = z.object({
+  title: requiredText(200, "Title"),
+  description: requiredText(8000, "Description"),
+  icon: optionalText(80),
+  image_url: imageUrl(),
+  order: z.coerce.number().int().min(0).max(100000).default(0),
+  published: z.boolean().default(true),
+});
+
+const blogPostBase = z.object({
+  title: requiredText(250, "Title"),
+  slug,
+  content: requiredText(100000, "Content"),
+  cover_image: imageUrl(),
+  excerpt: optionalText(500),
+  published: z.boolean().default(false),
+  published_at: z.union([z.iso.datetime({ offset: true }), z.null()]).default(null),
+});
+
+const teamBase = z.object({
+  name: requiredText(120, "Name"),
+  role: requiredText(120, "Role"),
+  photo_url: imageUrl(),
+  bio: optionalText(2000),
+  order: z.coerce.number().int().min(0).max(100000).default(0),
+});
+
+const testimonialBase = z.object({
+  author: requiredText(120, "Author"),
+  role: optionalText(120),
+  quote: requiredText(2000, "Quote"),
+  photo_url: imageUrl(),
+  published: z.boolean().default(true),
+});
+
+// The public form creates inquiries; the admin only ever edits them.
+const inquiryBase = z.object({
+  name: requiredText(120, "Name"),
+  email,
+  phone: z.union([phone, z.null(), z.literal("")]).transform((v) => v || null),
+  type: requiredText(200, "Type"),
+  message: text(8000),
+  status: z.enum(INQUIRY_STATUSES),
+  property_id: z.union([z.uuid(), z.null(), z.literal("")]).transform((v) => v || null),
+  check_in: z.union([isoDate, z.null()]).default(null),
+  check_out: z.union([isoDate, z.null()]).default(null),
+});
+
+const propertyBookingBase = z.object({
+  property_id: z.uuid(),
+  start_date: isoDate,
+  end_date: isoDate,
+  source: z.enum(["manual", "inquiry"]).default("manual"),
+  inquiry_id: z.union([z.uuid(), z.null()]).default(null),
+  note: optionalText(500),
+  guest_name: optionalText(120),
+  guest_email: z.union([email, z.null(), z.literal("")]).transform((v) => v || null),
+  guest_phone: z.union([phone, z.null(), z.literal("")]).transform((v) => v || null),
+});
+
+const endAfterStart = <T extends { start_date: string; end_date: string }>(v: T) =>
+  v.end_date > v.start_date;
+
+/**
+ * Table name -> { create, update }.
+ * `update` is partial: the admin UI sends single-field payloads for its
+ * publish/feature toggles and for inline status changes.
+ */
+export const ADMIN_SCHEMAS: Record<
+  string,
+  { create: z.ZodType; update: z.ZodType }
+> = {
+  properties: { create: propertyBase, update: propertyBase.partial() },
+  services: { create: serviceBase, update: serviceBase.partial() },
+  blog_posts: { create: blogPostBase, update: blogPostBase.partial() },
+  team: { create: teamBase, update: teamBase.partial() },
+  testimonials: { create: testimonialBase, update: testimonialBase.partial() },
+  inquiries: { create: inquiryBase, update: inquiryBase.partial() },
+  property_bookings: {
+    create: propertyBookingBase.refine(endAfterStart, {
+      message: "End date must be after the start date",
+      path: ["end_date"],
+    }),
+    update: propertyBookingBase.partial(),
+  },
+};
+
+/** Turns a ZodError into one readable sentence for the UI. */
+export function formatZodError(error: z.ZodError): string {
+  return error.issues
+    .map((i) => (i.path.length ? `${i.path.join(".")}: ${i.message}` : i.message))
+    .join("; ");
+}

@@ -3,6 +3,67 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-session";
+import { ADMIN_SCHEMAS, formatZodError } from "@/lib/validation";
+
+const MAX_BODY_BYTES = 512 * 1024;
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Parses and validates a request body against the collection's schema.
+ * z.object() strips unknown keys, so only known columns reach the database
+ * even though this client runs with the service role.
+ */
+async function parseBody(
+  req: Request,
+  collection: string,
+  mode: "create" | "update"
+): Promise<{ ok: true; data: Record<string, unknown> } | { ok: false; response: NextResponse }> {
+  const raw = await req.text();
+  if (raw.length > MAX_BODY_BYTES) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Request is too large" }, { status: 413 }),
+    };
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }),
+    };
+  }
+
+  const schema = ADMIN_SCHEMAS[collection]?.[mode];
+  if (!schema) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Invalid collection" }, { status: 400 }),
+    };
+  }
+
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: formatZodError(parsed.error) }, { status: 400 }),
+    };
+  }
+
+  const data = parsed.data as Record<string, unknown>;
+  if (mode === "update" && Object.keys(data).length === 0) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Nothing to update" }, { status: 400 }),
+    };
+  }
+
+  return { ok: true, data };
+}
 
 // List of allowed collections to dynamically operate on
 const ALLOWED_COLLECTIONS = [
@@ -115,7 +176,12 @@ export async function GET(
   // Allow basic sorting
   let query = supabaseAdmin.from(collection).select("*");
   if (searchParams.has("orderColumn")) {
-    query = query.order(searchParams.get("orderColumn")!, { ascending: searchParams.get("ascending") !== "false" });
+    const orderColumn = searchParams.get("orderColumn")!;
+    // Column names only - never let a caller shape the PostgREST query string.
+    if (!/^[a-z][a-z0-9_]{0,62}$/.test(orderColumn)) {
+      return NextResponse.json({ error: "Invalid sort column" }, { status: 400 });
+    }
+    query = query.order(orderColumn, { ascending: searchParams.get("ascending") !== "false" });
   } else if (collection !== "inquiries") {
      if (collection === "properties" || collection === "services" || collection === "team" || collection === "testimonials") {
        // A good default is order if it exists, but since we can't introspect easily via HTTP, 
@@ -145,8 +211,10 @@ export async function POST(
     return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
   }
 
-  const body = await req.json();
-  const { data, error } = await supabaseAdmin.from(collection).insert([body]).select();
+  const parsed = await parseBody(req, collection, "create");
+  if (!parsed.ok) return parsed.response;
+
+  const { data, error } = await supabaseAdmin.from(collection).insert([parsed.data]).select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   revalidateCollection(collection);
@@ -169,10 +237,18 @@ export async function PUT(
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+  if (!id || !UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Missing or invalid ID" }, { status: 400 });
+  }
 
-  const body = await req.json();
-  const { data, error } = await supabaseAdmin.from(collection).update(body).eq("id", id).select();
+  const parsed = await parseBody(req, collection, "update");
+  if (!parsed.ok) return parsed.response;
+
+  const { data, error } = await supabaseAdmin
+    .from(collection)
+    .update(parsed.data)
+    .eq("id", id)
+    .select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   if (collection === "inquiries") {
@@ -198,7 +274,9 @@ export async function DELETE(
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+  if (!id || !UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Missing or invalid ID" }, { status: 400 });
+  }
 
   // Deleting an inquiry also releases its blocked dates (FK only nulls them)
   if (collection === "inquiries") {

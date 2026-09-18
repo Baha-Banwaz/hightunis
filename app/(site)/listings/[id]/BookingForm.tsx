@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import DatePicker, { formatDate } from "@/app/components/DatePicker";
+import DatePicker from "@/app/components/DatePicker";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 // 8–15 digits, optional leading +, spaces/dashes/dots/parentheses allowed
@@ -33,6 +32,8 @@ export default function BookingForm({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+  // Honeypot. Hidden from people, filled in by most bots.
+  const [company, setCompany] = useState("");
   const [checkIn, setCheckIn] = useState<Date | null>(null);
   const [checkOut, setCheckOut] = useState<Date | null>(null);
   const [blocked, setBlocked] = useState<BlockedRange[]>([]);
@@ -41,26 +42,30 @@ export default function BookingForm({
   const [success, setSuccess] = useState(false);
 
   // Live availability: fetched on mount so it is never stale ISR data.
+  // Served by /api/availability, which reads property_bookings with the
+  // service role and returns ONLY start_date and end_date. The browser has
+  // no read access to that table, so guest details can never leak.
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     (async () => {
-      const { data } = await supabase
-        .from("property_bookings")
-        .select("start_date, end_date")
-        .eq("property_id", propertyId)
-        .gte("end_date", toISODate(new Date()));
-      if (!cancelled && data) {
+      try {
+        const res = await fetch(
+          `/api/availability?propertyId=${encodeURIComponent(propertyId)}`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) return;
+        const body: { ranges?: { start_date: string; end_date: string }[] } = await res.json();
         setBlocked(
-          data.map((b) => ({
+          (body.ranges ?? []).map((b) => ({
             start: parseISODate(b.start_date),
             end: parseISODate(b.end_date),
           }))
         );
+      } catch {
+        // Aborted or offline: the form still works, dates just are not greyed out.
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, [propertyId]);
 
   const isNightBlocked = (date: Date) =>
@@ -94,44 +99,34 @@ export default function BookingForm({
     if (!validate()) return;
     setSubmitting(true);
 
-    const details = [
-      `Booking request for ${propertyName}`,
-      `Check-in: ${formatDate(checkIn)}`,
-      `Check-out: ${formatDate(checkOut)}`,
-      `Phone: ${phone.trim()}`,
-      message.trim() ? `\n${message.trim()}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const base = {
-      name: name.trim(),
-      email: email.trim(),
-      type: `Booking — ${propertyName}`,
-      message: details,
-      property_id: propertyId,
-    };
-
-    let { error } = await supabase.from("inquiries").insert([
-      {
-        ...base,
+    // Posted to our own route. It re-runs this validation with zod, checks
+    // the property is published, re-checks the dates against live bookings,
+    // and sets status itself. The browser cannot write to Supabase at all.
+    const res = await fetch("/api/inquiries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: "booking",
+        name: name.trim(),
+        email: email.trim(),
         phone: phone.trim(),
-        check_in: checkIn ? toISODate(checkIn) : null,
-        check_out: checkOut ? toISODate(checkOut) : null,
-      },
-    ]);
-
-    // Fallback for a database that hasn't run the bookings migration yet
-    if (error && /column|schema cache/i.test(error.message)) {
-      ({ error } = await supabase.from("inquiries").insert([base]));
-    }
+        propertyId,
+        checkIn: checkIn ? toISODate(checkIn) : "",
+        checkOut: checkOut ? toISODate(checkOut) : "",
+        message: message.trim(),
+        company,
+      }),
+    }).catch(() => null);
 
     setSubmitting(false);
-    if (!error) {
+
+    if (res?.ok) {
       setSuccess(true);
-    } else {
-      setErrors({ submit: "Something went wrong. Please try again." });
+      return;
     }
+
+    const body = await res?.json().catch(() => null);
+    setErrors({ submit: body?.error ?? "Something went wrong. Please try again." });
   };
 
   if (success) {
@@ -225,6 +220,20 @@ export default function BookingForm({
             className={`${fieldClass} resize-none normal-case`}
           />
         </div>
+      </div>
+
+      {/* Honeypot: off-screen, not announced, never focusable. */}
+      <div aria-hidden="true" className="absolute left-[-9999px] top-auto w-px h-px overflow-hidden">
+        <label htmlFor="booking-company">Company</label>
+        <input
+          id="booking-company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+        />
       </div>
 
       {errors.submit && <p className={`${errorClass} mb-4`}>{errors.submit}</p>}

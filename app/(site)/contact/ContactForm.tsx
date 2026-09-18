@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -10,24 +9,36 @@ export default function ContactForm() {
     type: "",
     message: "",
   });
+  // Honeypot. Hidden from people, filled in by most bots.
+  const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // Inquiries table expects: name, email, type, message
-    const { error } = await supabase.from("inquiries").insert([formData]);
+    // Goes to our own route, which validates server-side and writes to
+    // Supabase with the service role. The browser has no database access.
+    const res = await fetch("/api/inquiries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "contact", ...formData, company }),
+    }).catch(() => null);
 
     setLoading(false);
-    if (!error) {
+
+    if (res?.ok) {
       setSuccess(true);
       setFormData({ name: "", email: "", type: "", message: "" });
       setTimeout(() => setSuccess(false), 5000);
-    } else {
-      alert("There was an error submitting your inquiry. Please try again.");
+      return;
     }
+
+    const body = await res?.json().catch(() => null);
+    setError(body?.error ?? "There was an error submitting your inquiry. Please try again.");
   };
 
   if (success) {
@@ -85,6 +96,24 @@ export default function ContactForm() {
           className="w-full bg-transparent border-b-2 border-black pb-4 text-2xl font-black uppercase tracking-tighter placeholder:text-black/20 outline-none focus:border-black transition-colors resize-none"
         ></textarea>
       </div>
+
+      {/* Honeypot: off-screen, not announced, never focusable. */}
+      <div aria-hidden="true" className="absolute left-[-9999px] top-auto w-px h-px overflow-hidden">
+        <label htmlFor="company">Company</label>
+        <input
+          id="company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+        />
+      </div>
+
+      {error && (
+        <p className="text-red-500 text-xs font-bold uppercase tracking-widest">{error}</p>
+      )}
 
       <button
         disabled={loading}
