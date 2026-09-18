@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function ServicesPage() {
   const { data: rawServices } = await supabase
     .from("services")
-    .select("*")
+    .select("id, title, description, icon, image_url")
     .eq("published", true)
     .order("order", { ascending: true });
 

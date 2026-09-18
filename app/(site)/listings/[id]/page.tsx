@@ -27,6 +27,9 @@ const getProperty = cache(async (slug: string) => {
     .from("properties")
     .select("id, name, slug, category, location, price, description, image_url, gallery, amenities")
     .eq("slug", slug)
+    // Defence in depth: RLS already hides unpublished rows from the anon key,
+    // but do not rely on a single layer for that.
+    .eq("published", true)
     .single();
   return data;
 });
