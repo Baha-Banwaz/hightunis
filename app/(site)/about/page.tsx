@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
+import { logQueryError } from "@/lib/query-log";
 
 export const revalidate = 3600;
 
@@ -11,17 +12,20 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const { data: teamData } = await supabase
+  const { data: teamData, error: teamError } = await supabase
     .from("team")
     // Explicit columns: the anon role holds column-level SELECT grants, so
     // select("*") would break as soon as a non-public column is added.
     .select("id, name, role, photo_url, bio")
     .order("order", { ascending: true });
   // no created_at ordering — the live DB's testimonials table lacks that column
-  const { data: testimonialsData } = await supabase
+  const { data: testimonialsData, error: testimonialsError } = await supabase
     .from("testimonials")
     .select("id, author, role, quote, photo_url")
     .eq("published", true);
+
+  logQueryError("team", teamError);
+  logQueryError("testimonials", testimonialsError);
 
   const team = teamData || [];
   const testimonials = testimonialsData || [];

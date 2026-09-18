@@ -4,13 +4,14 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { logQueryError } from "@/lib/query-log";
 import { notFound } from "next/navigation";
 
 export const revalidate = 3600;
 
 // cache() dedupes the query between generateMetadata and the page render
 const getPost = cache(async (slug: string) => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("blog_posts")
     .select("title, slug, content, excerpt, cover_image, published_at, created_at")
     .eq("slug", slug)
@@ -18,14 +19,16 @@ const getPost = cache(async (slug: string) => {
     // but do not rely on a single layer for that.
     .eq("published", true)
     .single();
+  logQueryError("blog_posts", error);
   return data;
 });
 
 export async function generateStaticParams() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("blog_posts")
     .select("slug")
     .eq("published", true);
+  logQueryError("blog_posts", error);
   return (data ?? []).map(({ slug }) => ({ slug }));
 }
 

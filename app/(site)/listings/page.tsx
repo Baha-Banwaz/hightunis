@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
+import { logQueryError } from "@/lib/query-log";
 import ListingsGrid from "./ListingsGrid";
 
 export const revalidate = 3600;
@@ -11,11 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ListingsPage() {
-  const { data: properties } = await supabase
+  const { data: properties, error } = await supabase
     .from("properties")
     .select("id, name, slug, category, location, price, image_url")
     .eq("published", true)
     .order("order", { ascending: true });
+
+  logQueryError("properties", error);
 
   return (
     <div className="bg-white min-h-screen pt-32 pb-24">

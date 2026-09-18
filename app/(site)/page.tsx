@@ -2,18 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { logQueryError } from "@/lib/query-log";
 import HomeHero from "./HomeHero";
 
 export const revalidate = 3600;
 
 export default async function Home() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("properties")
     .select("id, name, slug, category, location, price, image_url")
     .eq("published", true)
     .eq("featured", true)
     .order("order", { ascending: true })
     .limit(9);
+
+  logQueryError("properties", error);
 
   const properties = data ?? [];
   const hiddenOnMobile = Math.max(properties.length - 3, 0);

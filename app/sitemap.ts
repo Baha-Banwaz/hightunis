@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { SITE_URL } from "@/lib/site-config";
+import { logQueryError } from "@/lib/query-log";
 
 export const revalidate = 3600;
 
@@ -13,10 +14,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
-  const { data } = await supabase
+  const { data, error: propertiesError } = await supabase
     .from("properties")
     .select("slug, created_at")
     .eq("published", true);
+
+  logQueryError("properties", propertiesError);
 
   const listingRoutes: MetadataRoute.Sitemap = (data ?? []).map(({ slug, created_at }) => ({
     url: `${SITE_URL}/listings/${slug}`,
@@ -25,10 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const { data: posts } = await supabase
+  const { data: posts, error: postsError } = await supabase
     .from("blog_posts")
     .select("slug, published_at, created_at")
     .eq("published", true);
+
+  logQueryError("blog_posts", postsError);
 
   const blogRoutes: MetadataRoute.Sitemap = (posts ?? []).map(({ slug, published_at, created_at }) => ({
     url: `${SITE_URL}/blog/${slug}`,

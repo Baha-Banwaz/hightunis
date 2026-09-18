@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { logQueryError } from "@/lib/query-log";
 
 export const revalidate = 3600;
 
@@ -22,11 +23,13 @@ function formatDate(value: string | null) {
 }
 
 export default async function BlogPage() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("blog_posts")
     .select("id, title, slug, excerpt, cover_image, published_at, created_at")
     .eq("published", true)
     .order("published_at", { ascending: false, nullsFirst: false });
+
+  logQueryError("blog_posts", error);
 
   const posts = data ?? [];
 

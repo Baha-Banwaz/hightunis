@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { logQueryError } from "@/lib/query-log";
 
 export const revalidate = 3600;
 
@@ -12,11 +13,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-  const { data: rawServices } = await supabase
+  const { data: rawServices, error } = await supabase
     .from("services")
     .select("id, title, description, icon, image_url")
     .eq("published", true)
     .order("order", { ascending: true });
+
+  logQueryError("services", error);
 
   const services = rawServices || [];
 

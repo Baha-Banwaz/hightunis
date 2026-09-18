@@ -3,6 +3,7 @@ import { ReactNode, cache } from "react";
 import type { Metadata } from "next";
 import { ArrowLeft, Wifi, Car, Plane, Wine, Anchor, Coffee } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { logQueryError } from "@/lib/query-log";
 import { notFound } from "next/navigation";
 import BookingForm from "./BookingForm";
 import PropertyGallery from "./PropertyGallery";
@@ -23,7 +24,7 @@ const ICON_MAP: Record<string, ReactNode> = {
 
 // cache() dedupes the query between generateMetadata and the page render
 const getProperty = cache(async (slug: string) => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("properties")
     .select("id, name, slug, category, location, price, description, image_url, gallery, amenities")
     .eq("slug", slug)
@@ -31,14 +32,16 @@ const getProperty = cache(async (slug: string) => {
     // but do not rely on a single layer for that.
     .eq("published", true)
     .single();
+  logQueryError("properties", error);
   return data;
 });
 
 export async function generateStaticParams() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("properties")
     .select("slug")
     .eq("published", true);
+  logQueryError("properties", error);
   return (data ?? []).map(({ slug }) => ({ id: slug }));
 }
 
