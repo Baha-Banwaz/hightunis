@@ -109,6 +109,71 @@ async function syncBookingForInquiry(inquiryId: string): Promise<SyncResult> {
   // "finished" keeps whatever block already exists, so there is nothing to do.
   if (inquiry.status === "finished") return { ok: true };
 
+  const shouldBlock =
+    inquiry.status === "booked" &&
+    inquiry.property_id &&
+    inquiry.check_in &&
+    inquiry.check_out;
+
+  // Decide BEFORE destroying anything. Deleting first and only then finding
+  // out we cannot re-insert loses the block with nothing to put back.
+  if (!shouldBlock) {
+    // Marking an inquiry booked from the list view skips the edit form's
+    // validation, so this is reachable: booked, but nothing to block.
+    if (inquiry.status === "booked") {
+      return {
+        ok: false,
+        kind: "incomplete",
+        reason:
+          "Saved as booked, but no dates were blocked. A booked inquiry needs a property, a check-in and a check-out. Open it and fill those in. The previously blocked dates were left as they were.",
+      };
+    }
+
+    // new / contacted: releasing the dates is the intended behaviour.
+    const { error: releaseError } = await supabaseAdmin
+      .from("property_bookings")
+      .delete()
+      .eq("inquiry_id", inquiryId);
+
+    if (releaseError) {
+      console.error("[sync] could not release dates", {
+        inquiryId,
+        code: releaseError.code ?? null,
+        message: releaseError.message,
+        details: releaseError.details ?? null,
+      });
+      return {
+        ok: false,
+        kind: "failed",
+        reason:
+          "Your changes were saved, but the blocked dates could not be released. The calendar may still show the old range.",
+      };
+    }
+    return { ok: true };
+  }
+
+  // Snapshot what we are about to replace, so a failed insert can be undone.
+  // PostgREST gives us no transaction, so this is the compensating write.
+  const { data: previousBlocks, error: snapshotError } = await supabaseAdmin
+    .from("property_bookings")
+    .select("*")
+    .eq("inquiry_id", inquiryId);
+
+  if (snapshotError) {
+    console.error("[sync] could not read existing block", {
+      inquiryId,
+      code: snapshotError.code ?? null,
+      message: snapshotError.message,
+      details: snapshotError.details ?? null,
+    });
+    return {
+      ok: false,
+      kind: "failed",
+      reason:
+        "Your changes were saved, but the availability calendar could not be read. Reload and confirm the blocked dates.",
+    };
+  }
+
   const { error: deleteError } = await supabaseAdmin
     .from("property_bookings")
     .delete()
@@ -127,26 +192,6 @@ async function syncBookingForInquiry(inquiryId: string): Promise<SyncResult> {
       reason:
         "Your changes were saved, but the previously blocked dates could not be cleared. The calendar may still show the old range.",
     };
-  }
-
-  const shouldBlock =
-    inquiry.status === "booked" &&
-    inquiry.property_id &&
-    inquiry.check_in &&
-    inquiry.check_out;
-
-  if (!shouldBlock) {
-    // Marking an inquiry booked from the list view skips the edit form's
-    // validation, so this is reachable: booked, but nothing to block.
-    if (inquiry.status === "booked") {
-      return {
-        ok: false,
-        kind: "incomplete",
-        reason:
-          "Saved as booked, but no dates were blocked. A booked inquiry needs a property, a check-in and a check-out. Open it and fill those in.",
-      };
-    }
-    return { ok: true };
   }
 
   const row = {
@@ -180,10 +225,33 @@ async function syncBookingForInquiry(inquiryId: string): Promise<SyncResult> {
       details: insertError.details ?? null,
     });
 
+    // Put back what the delete above removed, so a failure here costs nothing.
+    let restored = true;
+    if (previousBlocks && previousBlocks.length > 0) {
+      const { error: restoreError } = await supabaseAdmin
+        .from("property_bookings")
+        .insert(previousBlocks);
+      if (restoreError) {
+        restored = false;
+        console.error("[sync] RESTORE FAILED - previous block is lost", {
+          inquiryId,
+          lost: previousBlocks,
+          code: restoreError.code ?? null,
+          message: restoreError.message,
+        });
+      }
+    }
+
     return {
       ok: false,
       kind: "failed",
-      reason: `Saved as booked, but the dates were NOT blocked on the calendar: ${insertError.message}`,
+      reason:
+        `Saved as booked, but the dates were NOT blocked on the calendar: ${insertError.message}.` +
+        (previousBlocks && previousBlocks.length > 0
+          ? restored
+            ? " The previous blocked dates were put back."
+            : " The previous blocked dates could not be put back either - check the calendar."
+          : ""),
     };
   }
 
