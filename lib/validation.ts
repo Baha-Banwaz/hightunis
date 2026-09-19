@@ -140,8 +140,8 @@ const propertyBase = z.object({
 const serviceBase = z.object({
   title: requiredText(200, "Title"),
   description: requiredText(8000, "Description"),
-  icon: optionalText(80),
-  image_url: imageUrl(),
+  icon: optionalText(80).optional(),
+  image_url: imageUrl().optional(),
   order: z.coerce.number().int().min(0).max(100000).default(0),
   published: z.boolean().default(true),
 });
@@ -150,8 +150,8 @@ const blogPostBase = z.object({
   title: requiredText(250, "Title"),
   slug,
   content: requiredText(100000, "Content"),
-  cover_image: imageUrl(),
-  excerpt: optionalText(500),
+  cover_image: imageUrl().optional(),
+  excerpt: optionalText(500).optional(),
   published: z.boolean().default(false),
   published_at: z.union([z.iso.datetime({ offset: true }), z.null()]).default(null),
 });
@@ -159,16 +159,16 @@ const blogPostBase = z.object({
 const teamBase = z.object({
   name: requiredText(120, "Name"),
   role: requiredText(120, "Role"),
-  photo_url: imageUrl(),
-  bio: optionalText(2000),
+  photo_url: imageUrl().optional(),
+  bio: optionalText(2000).optional(),
   order: z.coerce.number().int().min(0).max(100000).default(0),
 });
 
 const testimonialBase = z.object({
   author: requiredText(120, "Author"),
-  role: optionalText(120),
+  role: optionalText(120).optional(),
   quote: requiredText(2000, "Quote"),
-  photo_url: imageUrl(),
+  photo_url: imageUrl().optional(),
   published: z.boolean().default(true),
 });
 
@@ -191,10 +191,10 @@ const propertyBookingBase = z.object({
   end_date: isoDate,
   source: z.enum(["manual", "inquiry"]).default("manual"),
   inquiry_id: z.union([z.uuid(), z.null()]).default(null),
-  note: optionalText(500),
-  guest_name: optionalText(120),
-  guest_email: z.union([email, z.null(), z.literal("")]).transform((v) => v || null),
-  guest_phone: z.union([phone, z.null(), z.literal("")]).transform((v) => v || null),
+  note: optionalText(500).optional(),
+  guest_name: optionalText(120).optional(),
+  guest_email: z.union([email, z.null(), z.literal("")]).transform((v) => v || null).optional(),
+  guest_phone: z.union([phone, z.null(), z.literal("")]).transform((v) => v || null).optional(),
 });
 
 const endAfterStart = <T extends { start_date: string; end_date: string }>(v: T) =>
@@ -229,4 +229,49 @@ export function formatZodError(error: z.ZodError): string {
   return error.issues
     .map((i) => (i.path.length ? `${i.path.join(".")}: ${i.message}` : i.message))
     .join("; ");
+}
+
+export type ParseResult =
+  | { ok: true; data: Record<string, unknown> }
+  | { ok: false; error: string };
+
+/**
+ * Validates an admin payload for one collection.
+ *
+ * The update path exists because of a real data-loss bug. `.partial()` makes
+ * each field optional but does NOT remove `.default()`, so an absent key still
+ * resolves to its default: `{status:"booked"}` parsed to
+ * `{status:"booked", check_in:null, check_out:null}`. Supabase writes every key
+ * it is given, so those defaults overwrote real columns - a Featured toggle on
+ * a property was writing gallery=[] and amenities=[] as well.
+ *
+ * So an update result is intersected with the keys the client actually sent.
+ * Absent means untouched, whatever the schema defaults say. This holds for any
+ * collection and survives someone adding a `.default()` later.
+ */
+export function parseAdminPayload(
+  collection: string,
+  mode: "create" | "update",
+  body: unknown
+): ParseResult {
+  const schema = ADMIN_SCHEMAS[collection]?.[mode];
+  if (!schema) return { ok: false, error: "Invalid collection" };
+
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) return { ok: false, error: formatZodError(parsed.error) };
+
+  const data = { ...(parsed.data as Record<string, unknown>) };
+
+  if (mode === "update") {
+    // safeParse above only succeeds for a plain object, so this is safe.
+    const sent = new Set(Object.keys(body as Record<string, unknown>));
+    for (const key of Object.keys(data)) {
+      if (!sent.has(key)) delete data[key];
+    }
+    if (Object.keys(data).length === 0) {
+      return { ok: false, error: "Nothing to update" };
+    }
+  }
+
+  return { ok: true, data };
 }

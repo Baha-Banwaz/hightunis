@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-session";
-import { ADMIN_SCHEMAS, formatZodError } from "@/lib/validation";
+import { parseAdminPayload } from "@/lib/validation";
 
 const MAX_BODY_BYTES = 512 * 1024;
 
@@ -11,9 +11,9 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
- * Parses and validates a request body against the collection's schema.
- * z.object() strips unknown keys, so only known columns reach the database
- * even though this client runs with the service role.
+ * HTTP concerns only - size cap and JSON parsing. Validation, unknown-key
+ * stripping and the update key intersection live in parseAdminPayload so they
+ * can be tested without standing up a Request.
  */
 async function parseBody(
   req: Request,
@@ -38,31 +38,15 @@ async function parseBody(
     };
   }
 
-  const schema = ADMIN_SCHEMAS[collection]?.[mode];
-  if (!schema) {
+  const parsed = parseAdminPayload(collection, mode, body);
+  if (!parsed.ok) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "Invalid collection" }, { status: 400 }),
+      response: NextResponse.json({ error: parsed.error }, { status: 400 }),
     };
   }
 
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      response: NextResponse.json({ error: formatZodError(parsed.error) }, { status: 400 }),
-    };
-  }
-
-  const data = parsed.data as Record<string, unknown>;
-  if (mode === "update" && Object.keys(data).length === 0) {
-    return {
-      ok: false,
-      response: NextResponse.json({ error: "Nothing to update" }, { status: 400 }),
-    };
-  }
-
-  return { ok: true, data };
+  return { ok: true, data: parsed.data };
 }
 
 // List of allowed collections to dynamically operate on
@@ -195,6 +179,7 @@ async function syncBookingForInquiry(inquiryId: string): Promise<SyncResult> {
       message: insertError.message,
       details: insertError.details ?? null,
     });
+
     return {
       ok: false,
       kind: "failed",
