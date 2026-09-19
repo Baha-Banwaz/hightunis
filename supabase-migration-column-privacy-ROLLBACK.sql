@@ -34,7 +34,7 @@ REVOKE SELECT (
 ) ON public.properties FROM anon, authenticated;
 
 REVOKE SELECT (
-  id, title, description, icon, image_url, "order", published, created_at
+  id, title, description, icon, image_url, "order", published
 ) ON public.services FROM anon, authenticated;
 
 REVOKE SELECT (
@@ -43,11 +43,11 @@ REVOKE SELECT (
 ) ON public.blog_posts FROM anon, authenticated;
 
 REVOKE SELECT (
-  id, name, role, photo_url, bio, "order", created_at
+  id, name, role, photo_url, bio, "order"
 ) ON public.team FROM anon, authenticated;
 
 REVOKE SELECT (
-  id, author, role, quote, photo_url, published, created_at
+  id, author, role, quote, photo_url, published
 ) ON public.testimonials FROM anon, authenticated;
 
 -- Belt and braces: clears anything the column revokes above missed.

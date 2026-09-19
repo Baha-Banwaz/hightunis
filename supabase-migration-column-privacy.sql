@@ -68,7 +68,7 @@ GRANT SELECT (
 ) ON public.properties TO anon, authenticated;
 
 GRANT SELECT (
-  id, title, description, icon, image_url, "order", published, created_at
+  id, title, description, icon, image_url, "order", published
 ) ON public.services TO anon, authenticated;
 
 GRANT SELECT (
@@ -77,11 +77,11 @@ GRANT SELECT (
 ) ON public.blog_posts TO anon, authenticated;
 
 GRANT SELECT (
-  id, name, role, photo_url, bio, "order", created_at
+  id, name, role, photo_url, bio, "order"
 ) ON public.team TO anon, authenticated;
 
 GRANT SELECT (
-  id, author, role, quote, photo_url, published, created_at
+  id, author, role, quote, photo_url, published
 ) ON public.testimonials TO anon, authenticated;
 
 
