@@ -20,6 +20,18 @@ export const metadata: Metadata = {
   // gives every page its own canonical, including dynamic ones. A bare "/"
   // would make every page claim the homepage.
   alternates: { canonical: "./" },
+  // app/favicon.ico is picked up by convention. These are the surfaces that
+  // convention does not cover: the iOS home screen, the Android launcher and
+  // the SVG some browsers prefer for the tab.
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  manifest: "/manifest.webmanifest",
   openGraph: {
     siteName: SITE_CONFIG.name,
     type: "website",

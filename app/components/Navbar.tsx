@@ -36,7 +36,7 @@ export default function Navbar() {
 
   // Force black theme if we're not on the home page, or if scrolled past threshold, or if menu is open
   const needsDarkTheme = !isHomePage || isScrolled || isMobileMenuOpen;
-  const logoSrc = needsDarkTheme ? "/Black.png" : "/White.png";
+  const logoSrc = needsDarkTheme ? "/Black.svg" : "/White.svg";
 
   return (
     <>
@@ -50,9 +50,9 @@ export default function Navbar() {
           <Link href="/" className="flex-shrink-0 z-50">
             <Image 
               src={logoSrc} 
-              alt="HIGHTUNIS Logo" 
-              width={320} 
-              height={80} 
+              alt="HighTunis"
+              width={583}
+              height={509}
               className="h-10 md:h-14 lg:h-16 w-auto object-contain transition-all duration-300"
               priority
             />
