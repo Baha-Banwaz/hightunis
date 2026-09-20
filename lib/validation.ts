@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { INQUIRY_STATUSES } from "./inquiry-status.ts";
 
 // Every payload that reaches the database passes through one of these schemas.
 // z.object() strips unknown keys, so a client cannot write a column it was
@@ -117,7 +118,8 @@ export const availabilityQuerySchema = z.object({
 // Admin input (authenticated, but still validated and column-scoped)
 // ---------------------------------------------------------------------------
 
-export const INQUIRY_STATUSES = ["new", "contacted", "booked", "finished"] as const;
+// Re-exported for the admin UI, which imports statuses and schemas together.
+export { INQUIRY_STATUSES } from "./inquiry-status.ts";
 
 const propertyBase = z.object({
   name: requiredText(200, "Name"),
@@ -183,6 +185,21 @@ const inquiryBase = z.object({
   property_id: z.union([z.uuid(), z.null(), z.literal("")]).transform((v) => v || null),
   check_in: z.union([isoDate, z.null()]).default(null),
   check_out: z.union([isoDate, z.null()]).default(null),
+  // Minor units. int4 caps at EUR 21,474,836 - ample for a stay.
+  // null/"" FIRST: z.coerce.number() turns null into 0, and a union takes the
+  // first branch that matches - so clearing an amount would have written a
+  // real zero, which counts as revenue and hides the missing-amount flag.
+  amount_cents: z
+    .union([z.null(), z.literal(""), z.coerce.number().int().min(0).max(2147483647)])
+    .transform((v) => (v === "" || v === null ? null : v))
+    .optional(),
+  currency: z
+    .string()
+    .transform(clean)
+    .pipe(z.string().regex(/^[A-Z]{3}$/, "Currency must be a 3-letter code"))
+    .optional(),
+  // confirmed_at and cancelled_at are intentionally not here. The server sets
+  // them from the transition; a client must never be able to backdate revenue.
 });
 
 const propertyBookingBase = z.object({

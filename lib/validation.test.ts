@@ -107,3 +107,38 @@ test("an unknown collection is rejected", () => {
   assert.ok(!result.ok);
   assert.match(result.error, /Invalid collection/);
 });
+
+test("a client cannot set the server-owned revenue timestamps", () => {
+  // confirmed_at / cancelled_at are deliberately absent from the schema, so
+  // z.object() strips them. Backdating revenue must not be a client concern.
+  const result = parseAdminPayload("inquiries", "update", {
+    status: "booked",
+    confirmed_at: "2020-01-01T00:00:00.000Z",
+    cancelled_at: "2020-01-01T00:00:00.000Z",
+  });
+  assert.ok(result.ok);
+  assert.deepEqual(result.data, { status: "booked" });
+});
+
+test("amount_cents and currency are admin-editable and validated", () => {
+  const ok = parseAdminPayload("inquiries", "update", { amount_cents: 450000, currency: "EUR" });
+  assert.ok(ok.ok);
+  assert.equal(ok.data.amount_cents, 450000);
+  assert.equal(ok.data.currency, "EUR");
+
+  // Clearing an amount is legitimate.
+  const cleared = parseAdminPayload("inquiries", "update", { amount_cents: null });
+  assert.ok(cleared.ok);
+  assert.equal(cleared.data.amount_cents, null);
+
+  for (const bad of [{ amount_cents: -1 }, { amount_cents: 2147483648 }, { currency: "euro" }]) {
+    assert.ok(!parseAdminPayload("inquiries", "update", bad).ok, JSON.stringify(bad));
+  }
+});
+
+test("cancelled is now an accepted status; legacy values are not", () => {
+  assert.ok(parseAdminPayload("inquiries", "update", { status: "cancelled" }).ok);
+  for (const bad of ["closed", "in-progress", "CANCELLED", ""]) {
+    assert.ok(!parseAdminPayload("inquiries", "update", { status: bad }).ok, bad);
+  }
+});

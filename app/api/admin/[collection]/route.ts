@@ -4,6 +4,14 @@ import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-session";
 import { parseAdminPayload } from "@/lib/validation";
+import {
+  ACTOR_ADMIN,
+  canTransition,
+  isInquiryStatus,
+  MISSING_AMOUNT_WARNING,
+  transitionError,
+  type InquiryStatus,
+} from "@/lib/inquiry-status";
 
 const MAX_BODY_BYTES = 512 * 1024;
 
@@ -67,6 +75,83 @@ const COLLECTION_ALIASES: Record<string, string> = {
 
 function resolveCollection(name: string) {
   return COLLECTION_ALIASES[name] ?? name;
+}
+
+/** Columns the inquiry PUT path needs to reason about before it writes. */
+const INQUIRY_STATE_COLUMNS =
+  "id, status, property_id, check_in, check_out, confirmed_at, cancelled_at, amount_cents";
+
+interface InquiryState {
+  id: string;
+  status: string | null;
+  property_id: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  confirmed_at: string | null;
+  cancelled_at: string | null;
+  amount_cents: number | null;
+}
+
+/**
+ * Refuses a booking whose dates overlap an existing block on the same property.
+ *
+ * Rows belonging to this inquiry are discarded in JS, NOT with a PostgREST
+ * neq: `inquiry_id <> 'x'` evaluates to NULL for manual blocks, which would
+ * silently skip exactly the rows we most need to see.
+ *
+ * This is advisory. The authoritative guarantee is the database exclusion
+ * constraint property_bookings_no_overlap - check-then-write over PostgREST
+ * can never be atomic.
+ */
+async function findBookingClash(
+  propertyId: string,
+  checkIn: string,
+  checkOut: string,
+  ignoreInquiryId: string
+): Promise<{ start_date: string; end_date: string; who: string } | null> {
+  const { data, error } = await supabaseAdmin
+    .from("property_bookings")
+    .select("start_date, end_date, inquiry_id, guest_name, note, source")
+    .eq("property_id", propertyId)
+    .lt("start_date", checkOut)
+    .gt("end_date", checkIn);
+
+  if (error) {
+    console.error("[clash] could not check availability", {
+      propertyId,
+      code: error.code ?? null,
+      message: error.message,
+    });
+    throw new Error("availability-check-failed");
+  }
+
+  const clash = (data ?? []).find((b) => b.inquiry_id !== ignoreInquiryId);
+  if (!clash) return null;
+
+  return {
+    start_date: clash.start_date as string,
+    end_date: clash.end_date as string,
+    who: (clash.guest_name as string) || (clash.note as string) || (clash.source as string) || "another booking",
+  };
+}
+
+/** Best-effort audit entry. A failure warns; it never blocks the save. */
+async function recordStatusEvent(
+  inquiryId: string,
+  from: string | null,
+  to: string,
+  actor: string
+): Promise<string | null> {
+  const { error } = await supabaseAdmin.from("inquiry_status_events").insert([
+    { inquiry_id: inquiryId, from_status: from, to_status: to, actor },
+  ]);
+  if (!error) return null;
+  console.error("[audit] could not record status change", {
+    inquiryId, from, to, actor,
+    code: error.code ?? null,
+    message: error.message,
+  });
+  return `Status changed to "${to}", but the change could not be written to the audit log.`;
 }
 
 // Keeps the availability calendar in sync with an inquiry after ANY edit:
@@ -374,29 +459,139 @@ export async function PUT(
   const parsed = await parseBody(req, collection, "update");
   if (!parsed.ok) return parsed.response;
 
+  const patch: Record<string, unknown> = { ...parsed.data };
+  const warnings: string[] = [];
+  let statusChange: { from: string | null; to: string } | null = null;
+
+  // ---------------------------------------------------------------------
+  // Inquiries: decide everything BEFORE writing. A clash or a disallowed
+  // transition must leave the row untouched, not be undone afterwards.
+  // ---------------------------------------------------------------------
+  if (collection === "inquiries") {
+    const { data: current, error: readError } = await supabaseAdmin
+      .from("inquiries")
+      .select(INQUIRY_STATE_COLUMNS)
+      .eq("id", id)
+      .single<InquiryState>();
+
+    if (readError || !current) {
+      if (readError && readError.code !== "PGRST116") {
+        console.error("[inquiry] could not read current state", {
+          id, code: readError.code ?? null, message: readError.message,
+        });
+      }
+      return NextResponse.json({ error: "Inquiry not found" }, { status: 404 });
+    }
+
+    const from = current.status;
+    const to = (patch.status as string | undefined) ?? from;
+
+    if (!isInquiryStatus(to) || (from !== null && !isInquiryStatus(from))) {
+      return NextResponse.json({ error: "Unknown inquiry status" }, { status: 400 });
+    }
+
+    // 1. Is this transition legal?
+    if (from !== null && to !== from) {
+      if (!canTransition(from as InquiryStatus, to)) {
+        return NextResponse.json(
+          { error: transitionError(from as InquiryStatus, to) },
+          { status: 409 }
+        );
+      }
+      statusChange = { from, to };
+    }
+
+    // The state the row will be in once this patch is applied.
+    const merged = {
+      property_id: ("property_id" in patch ? patch.property_id : current.property_id) as string | null,
+      check_in: ("check_in" in patch ? patch.check_in : current.check_in) as string | null,
+      check_out: ("check_out" in patch ? patch.check_out : current.check_out) as string | null,
+      amount_cents: ("amount_cents" in patch ? patch.amount_cents : current.amount_cents) as number | null,
+    };
+
+    // 2. Would the result double-book a property? This also covers the edit
+    //    form changing dates on an already-booked inquiry, which previously
+    //    had no overlap check at all.
+    if (to === "booked" && merged.property_id && merged.check_in && merged.check_out) {
+      try {
+        const clash = await findBookingClash(
+          merged.property_id,
+          merged.check_in,
+          merged.check_out,
+          id
+        );
+        if (clash) {
+          return NextResponse.json(
+            {
+              error:
+                `Those dates clash with an existing booking on this property (${clash.start_date} to ${clash.end_date}, ${clash.who}). Nothing was saved.`,
+            },
+            { status: 409 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { error: "Could not check availability, so nothing was saved. Try again." },
+          { status: 503 }
+        );
+      }
+    }
+
+    // 3. Server-owned timestamps. Never taken from the client.
+    if (to === "booked" && !current.confirmed_at) {
+      patch.confirmed_at = new Date().toISOString();
+    }
+    if (to === "cancelled") {
+      if (!current.cancelled_at) patch.cancelled_at = new Date().toISOString();
+    } else if (current.cancelled_at) {
+      // Reinstated. The audit log keeps the history; the column means
+      // "currently cancelled since", so it is cleared.
+      patch.cancelled_at = null;
+    }
+
+    if (to === "booked" && merged.amount_cents === null) {
+      warnings.push(MISSING_AMOUNT_WARNING);
+    }
+  }
+
   const { data, error } = await supabaseAdmin
     .from(collection)
-    .update(parsed.data)
+    .update(patch)
     .eq("id", id)
     .select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   if (collection === "inquiries") {
+    if (statusChange) {
+      const auditWarning = await recordStatusEvent(
+        id,
+        statusChange.from,
+        statusChange.to,
+        ACTOR_ADMIN
+      );
+      if (auditWarning) warnings.push(auditWarning);
+    }
+
     const sync = await syncBookingForInquiry(id);
     if (!sync.ok) {
       // The inquiry row itself was written, so say so plainly rather than
       // reporting a clean success the calendar does not back up.
       revalidateCollection(collection);
       return NextResponse.json(
-        { error: sync.reason, inquiryUpdated: true, calendarUpdated: false },
+        {
+          error: sync.reason,
+          warnings,
+          inquiryUpdated: true,
+          calendarUpdated: false,
+        },
         { status: sync.kind === "incomplete" ? 409 : 500 }
       );
     }
   }
 
   revalidateCollection(collection);
-  return NextResponse.json(data);
+  return NextResponse.json({ data, warnings });
 }
 
 export async function DELETE(
