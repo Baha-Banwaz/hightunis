@@ -1,9 +1,13 @@
 // Central place for brand facts and contact details used across the site.
 // The fallback only applies if NEXT_PUBLIC_SITE_URL is unset. It feeds
 // metadataBase, every canonical and OG URL, sitemap.xml and robots.txt, so it
-// must be a domain we actually own.
+// must be a domain we actually own, and it must match the env var exactly.
+//
+// www is canonical: hightunis.com 308-redirects to www.hightunis.com. Dropping
+// the www here would emit canonical tags pointing at a URL that redirects,
+// which splits the signal search engines use to pick one address.
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://hightunis-xi.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.hightunis.com";
 
 export const SITE_CONFIG = {
   name: "HighTunis",
