@@ -87,7 +87,7 @@ export default function AdminTeam() {
           <h1 className="text-4xl font-black tracking-tighter uppercase text-black">Team</h1>
           <p className="text-sm text-black/40 font-semibold mt-1">{items.length} members</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors rounded-lg">
+        <button onClick={openNew} className="flex items-center gap-2 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors">
           <Plus size={16} /> Add Member
         </button>
       </div>
@@ -95,18 +95,18 @@ export default function AdminTeam() {
       {loading ? (
         <div className="text-sm font-bold uppercase tracking-widest text-black/30 animate-pulse">Loading...</div>
       ) : items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-black/10 p-16 text-center">
+        <div className="bg-white border border-black/20 p-16 text-center">
           <p className="text-sm text-black/40 font-bold uppercase tracking-widest">No team members yet</p>
-          <button onClick={openNew} className="mt-6 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] rounded-lg hover:bg-black/80 transition-colors">
+          <button onClick={openNew} className="mt-6 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors">
             Add First Member
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((t) => (
-            <div key={t.id} className="bg-white rounded-xl border border-black/10 p-6 flex flex-col">
+            <div key={t.id} className="bg-white border border-black/20 p-6 flex flex-col">
               {t.photo_url && (
-                <div className="w-16 h-16 rounded-full bg-black/5 mb-4 overflow-hidden">
+                <div className="w-16 h-16 bg-black/5 mb-4 overflow-hidden">
                   <img src={t.photo_url} alt={t.name} className="w-full h-full object-cover" />
                 </div>
               )}
@@ -114,8 +114,8 @@ export default function AdminTeam() {
               <p className="text-xs font-bold uppercase tracking-[2px] text-black/40 mt-1">{t.role}</p>
               {t.bio && <p className="text-sm text-black/60 mt-3 line-clamp-2">{t.bio}</p>}
               <div className="flex items-center gap-2 mt-auto pt-4">
-                <button onClick={() => openEdit(t)} className="w-8 h-8 rounded-lg flex items-center justify-center bg-black/5 hover:bg-black/10 text-black/60 transition-colors"><Pencil size={14} /></button>
-                <button onClick={() => handleDelete(t.id)} className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 transition-colors"><Trash2 size={14} /></button>
+                <button onClick={() => openEdit(t)} className="w-8 h-8 flex items-center justify-center bg-black/5 hover:bg-black/10 text-black/60 transition-colors"><Pencil size={14} /></button>
+                <button onClick={() => handleDelete(t.id)} className="w-8 h-8 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 transition-colors"><Trash2 size={14} /></button>
               </div>
             </div>
           ))}
@@ -124,8 +124,8 @@ export default function AdminTeam() {
 
       {showForm && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-start justify-center pt-8 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-lg mx-4 mb-8 shadow-2xl">
-            <div className="flex items-center justify-between px-8 py-6 border-b border-black/10">
+          <div className="bg-white w-full max-w-lg mx-4 mb-8 shadow-2xl">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-black/20">
               <h2 className="text-xl font-black uppercase tracking-tighter">{editing ? "Edit Member" : "New Member"}</h2>
               <button onClick={() => setShowForm(false)} className="text-black/40 hover:text-black"><X size={20} /></button>
             </div>
@@ -136,14 +136,14 @@ export default function AdminTeam() {
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Bio</label>
                 <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} rows={3}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none" />
+                  className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none" />
               </div>
               <Field label="Order" value={String(form.order)} onChange={(v) => setForm({ ...form, order: parseInt(v) || 0 })} />
             </div>
-            <div className="flex justify-end gap-3 px-8 py-6 border-t border-black/10">
+            <div className="flex justify-end gap-3 px-8 py-6 border-t border-black/20">
               <button onClick={() => setShowForm(false)} className="px-6 py-3 text-xs font-bold uppercase tracking-[2px] text-black/40 hover:text-black transition-colors">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.name}
-                className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors rounded-lg disabled:opacity-40">
+                className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors disabled:opacity-40">
                 {saving ? "Saving..." : editing ? "Update" : "Create"}
               </button>
             </div>
@@ -159,7 +159,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
     <div>
       <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">{label}</label>
       <input type="text" value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors" />
+        className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors" />
     </div>
   );
 }

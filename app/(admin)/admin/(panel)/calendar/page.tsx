@@ -242,14 +242,14 @@ export default function AdminCalendar() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors rounded-lg"
+          className="flex items-center gap-2 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors"
         >
           <Plus size={16} /> Block Dates
         </button>
       </div>
 
       {migrationMissing && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 mb-8 text-sm font-semibold">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-6 mb-8 text-sm font-semibold">
           The bookings table doesn&apos;t exist yet. Run <code className="font-mono">supabase-migration-bookings.sql</code> in
           the Supabase SQL Editor, then reload this page.
         </div>
@@ -260,20 +260,20 @@ export default function AdminCalendar() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewDate(new Date(year, month - 1, 1))}
-            className="w-10 h-10 flex items-center justify-center border border-black/20 rounded-lg hover:bg-black hover:text-white transition-colors"
+            className="w-10 h-10 flex items-center justify-center border border-black/20 hover:bg-black hover:text-white transition-colors"
             aria-label="Previous month"
           >
             <ChevronLeft size={16} />
           </button>
           <button
             onClick={() => setViewDate(new Date())}
-            className="h-10 px-4 text-xs font-bold uppercase tracking-[2px] border border-black/20 rounded-lg hover:bg-black hover:text-white transition-colors"
+            className="h-10 px-4 text-xs font-bold uppercase tracking-[2px] border border-black/20 hover:bg-black hover:text-white transition-colors"
           >
             Today
           </button>
           <button
             onClick={() => setViewDate(new Date(year, month + 1, 1))}
-            className="w-10 h-10 flex items-center justify-center border border-black/20 rounded-lg hover:bg-black hover:text-white transition-colors"
+            className="w-10 h-10 flex items-center justify-center border border-black/20 hover:bg-black hover:text-white transition-colors"
             aria-label="Next month"
           >
             <ChevronRight size={16} />
@@ -285,7 +285,7 @@ export default function AdminCalendar() {
         <select
           value={filterPropertyId}
           onChange={(e) => setFilterPropertyId(e.target.value)}
-          className="text-xs font-bold uppercase tracking-[2px] border border-black/20 rounded-lg px-4 py-3 bg-white outline-none cursor-pointer"
+          className="text-xs font-bold uppercase tracking-[2px] border border-black/20 px-4 py-3 bg-white outline-none cursor-pointer"
         >
           <option value="">All properties</option>
           {properties.map((p) => (
@@ -298,8 +298,8 @@ export default function AdminCalendar() {
         <div className="text-sm font-bold uppercase tracking-widest text-black/30 animate-pulse">Loading...</div>
       ) : (
         <>
-          <div className="bg-white rounded-xl border border-black/10 overflow-hidden">
-            <div className="grid grid-cols-7 border-b border-black/10">
+          <div className="bg-white border border-black/20 overflow-hidden">
+            <div className="grid grid-cols-7 border-b border-black/20">
               {WEEKDAYS.map((d) => (
                 <div key={d} className="px-3 py-3 text-[10px] font-bold uppercase tracking-[2px] text-black/40 text-center">
                   {d}
@@ -317,7 +317,7 @@ export default function AdminCalendar() {
                 return (
                   <div key={day} className={`min-h-[110px] border-b border-r border-black/5 p-2 flex flex-col gap-1 ${isToday ? "bg-black/[0.03]" : ""}`}>
                     <span
-                      className={`text-xs font-black self-start px-1.5 py-0.5 rounded ${
+                      className={`text-xs font-black self-start px-1.5 py-0.5 ${
                         isToday ? "bg-black text-white" : "text-black/50"
                       }`}
                     >
@@ -328,9 +328,9 @@ export default function AdminCalendar() {
                         key={b.id}
                         onClick={() => openEdit(b)}
                         title={`${propertyName[b.property_id] ?? "Property"}${guestLabel(b) ? ` — ${guestLabel(b)}` : ""} (${b.start_date} → ${b.end_date}). Click to edit.`}
-                        className={`text-left text-[9px] font-bold uppercase tracking-[1px] px-2 py-1 rounded truncate transition-colors ${
+                        className={`text-left text-[9px] font-bold uppercase tracking-[1px] px-2 py-1 truncate transition-colors ${
                           b.source === "inquiry"
-                            ? "bg-green-100 text-green-800 hover:bg-green-200"
+                            ? "bg-accent text-black hover:bg-accent/70"
                             : "bg-black text-white hover:bg-black/70"
                         }`}
                       >
@@ -347,15 +347,15 @@ export default function AdminCalendar() {
 
           {/* Legend */}
           <div className="flex items-center gap-6 mt-4 text-[10px] font-bold uppercase tracking-[2px] text-black/40">
-            <span className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-black inline-block" /> Manual block</span>
-            <span className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-green-200 inline-block" /> Booked inquiry</span>
+            <span className="flex items-center gap-2"><span className="w-3 h-3 bg-black inline-block" /> Manual block</span>
+            <span className="flex items-center gap-2"><span className="w-3 h-3 bg-accent inline-block" /> Booked inquiry</span>
           </div>
 
           {/* Upcoming */}
           {upcoming.length > 0 && (
             <div className="mt-10">
               <h3 className="text-lg font-black uppercase tracking-tighter mb-4">Upcoming</h3>
-              <div className="bg-white rounded-xl border border-black/10 divide-y divide-black/5">
+              <div className="bg-white border border-black/20 divide-y divide-black/5">
                 {upcoming.map((b) => (
                   <button
                     key={b.id}
@@ -363,7 +363,7 @@ export default function AdminCalendar() {
                     className="w-full flex flex-wrap items-center justify-between gap-3 px-6 py-4 text-left hover:bg-black/[0.02] transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <span className={`w-2.5 h-2.5 rounded-full ${b.source === "inquiry" ? "bg-green-400" : "bg-black"}`} />
+                      <span className={`w-2.5 h-2.5 ${b.source === "inquiry" ? "bg-accent" : "bg-black"}`} />
                       <span className="text-sm font-black uppercase tracking-tight">{propertyName[b.property_id] ?? "Property"}</span>
                       {guestLabel(b) && <span className="text-sm font-semibold text-black/50">{guestLabel(b)}</span>}
                     </div>
@@ -381,8 +381,8 @@ export default function AdminCalendar() {
       {/* Create / edit modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-start justify-center pt-16 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-lg mx-4 mb-8 shadow-2xl">
-            <div className="flex items-center justify-between px-8 py-6 border-b border-black/10">
+          <div className="bg-white w-full max-w-lg mx-4 mb-8 shadow-2xl">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-black/20">
               <h2 className="text-xl font-black uppercase tracking-tighter">
                 {editing ? "Edit Booking" : "Block Dates"}
               </h2>
@@ -390,7 +390,7 @@ export default function AdminCalendar() {
             </div>
             <div className="px-8 py-6 flex flex-col gap-6">
               {editing?.source === "inquiry" && (
-                <p className="text-[10px] font-bold uppercase tracking-[2px] text-green-700 bg-green-50 rounded-lg px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/60 bg-white px-4 py-3">
                   Created from an inquiry — if you edit that inquiry later, it overwrites these dates.
                 </p>
               )}
@@ -399,7 +399,7 @@ export default function AdminCalendar() {
                 <select
                   value={fPropertyId}
                   onChange={(e) => setFPropertyId(e.target.value)}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                  className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
                 >
                   {properties.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -430,11 +430,11 @@ export default function AdminCalendar() {
                 <p className="text-red-500 text-xs font-bold uppercase tracking-widest">{formError}</p>
               )}
             </div>
-            <div className="flex justify-between gap-3 px-8 py-6 border-t border-black/10">
+            <div className="flex justify-between gap-3 px-8 py-6 border-t border-black/20">
               {editing ? (
                 <button
                   onClick={handleDelete}
-                  className="flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-[2px] text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-[2px] text-red-500 hover:bg-red-50 transition-colors"
                 >
                   <Trash2 size={14} /> Remove
                 </button>
@@ -444,7 +444,7 @@ export default function AdminCalendar() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors rounded-lg disabled:opacity-40"
+                  className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors disabled:opacity-40"
                 >
                   {saving ? "Saving..." : editing ? "Save Changes" : "Block Dates"}
                 </button>
@@ -473,7 +473,7 @@ function IconField({
   return (
     <div>
       <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">{label}</label>
-      <div className="flex items-center gap-3 border border-black/20 rounded-lg px-4 py-3 focus-within:border-black transition-colors">
+      <div className="flex items-center gap-3 border border-black/20 px-4 py-3 focus-within:border-black transition-colors">
         {icon && <span className="text-black/30">{icon}</span>}
         <input
           type="text"

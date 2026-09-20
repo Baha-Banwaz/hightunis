@@ -35,9 +35,9 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-black/10 flex flex-col fixed left-0 top-0 z-50">
+    <aside className="w-64 min-h-screen bg-white border-r-2 border-black flex flex-col fixed left-0 top-0 z-50">
       {/* Brand */}
-      <div className="px-6 py-8 border-b border-black/10">
+      <div className="px-6 py-8 border-b-2 border-black">
         <h1 className="text-xl font-black tracking-tighter uppercase text-black">
           HIGHTUNIS
         </h1>
@@ -58,7 +58,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                 isActive
                   ? "bg-black text-white"
                   : "text-black/60 hover:bg-black/5 hover:text-black"
@@ -75,14 +75,14 @@ export default function AdminSidebar() {
       <div className="px-3 pb-6 flex flex-col gap-1">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-black/40 hover:bg-black/5 hover:text-black transition-all duration-200"
+          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-black/40 hover:bg-black/5 hover:text-black transition-all duration-200"
         >
           <ArrowLeft size={18} />
           Back to Site
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-red-500/60 hover:bg-red-50 hover:text-red-600 transition-all duration-200 w-full text-left"
+          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-500/60 hover:bg-red-50 hover:text-red-600 transition-all duration-200 w-full text-left"
         >
           <LogOut size={18} />
           Log Out

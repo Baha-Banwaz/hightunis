@@ -34,7 +34,7 @@ export function UploadButton({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={busy}
-        className="flex items-center gap-2 border border-black/20 rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black hover:text-white transition-colors disabled:opacity-40 whitespace-nowrap"
+        className="flex items-center gap-2 border border-black/20 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black hover:text-white transition-colors disabled:opacity-40 whitespace-nowrap"
       >
         <Upload size={13} /> {busy ? "Uploading..." : label}
       </button>
@@ -87,7 +87,7 @@ export default function ImageField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Paste a URL or upload →"
-          className="flex-1 border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+          className="flex-1 border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
         />
         <UploadButton folder={folder} onUploaded={(urls) => onChange(urls[0])} />
       </div>
@@ -96,7 +96,7 @@ export default function ImageField({
         <img
           src={value}
           alt="Preview"
-          className="mt-3 h-32 w-full object-cover rounded-lg border border-black/10"
+          className="mt-3 h-32 w-full object-cover border border-black/20"
         />
       ) : null}
     </div>

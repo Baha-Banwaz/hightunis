@@ -317,7 +317,7 @@ export default function AdminDashboard() {
             <div className="border border-black/20 bg-white mb-10">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-black/10">
+                  <tr className="border-b-2 border-black">
                     {["Property", "Bookings", "Nights", "Value"].map((h) => (
                       <th key={h} className="px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] text-black/40">
                         {h}

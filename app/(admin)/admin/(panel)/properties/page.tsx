@@ -159,7 +159,7 @@ export default function AdminProperties() {
         </div>
         <button
           onClick={openNew}
-          className="flex items-center gap-2 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors rounded-lg"
+          className="flex items-center gap-2 bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors"
         >
           <Plus size={16} /> Add Property
         </button>
@@ -169,10 +169,10 @@ export default function AdminProperties() {
       {loading ? (
         <div className="text-sm font-bold uppercase tracking-widest text-black/30 animate-pulse">Loading...</div>
       ) : (
-        <div className="bg-white rounded-xl border border-black/10 overflow-hidden">
+        <div className="bg-white border border-black/20 overflow-hidden">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-black/10 text-[10px] font-bold uppercase tracking-[2px] text-black/40">
+              <tr className="border-b border-black/20 text-[10px] font-bold uppercase tracking-[2px] text-black/40">
                 <th className="px-6 py-4">#</th>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Category</th>
@@ -189,7 +189,7 @@ export default function AdminProperties() {
                   <td className="px-6 py-4 text-sm text-black/40 font-bold">{p.order}</td>
                   <td className="px-6 py-4 text-sm font-bold text-black">{p.name}</td>
                   <td className="px-6 py-4">
-                    <span className="text-[10px] font-bold uppercase tracking-[2px] bg-black/5 px-3 py-1 rounded-full">
+                    <span className="text-[10px] font-bold uppercase tracking-[2px] bg-black/5 px-3 py-1">
                       {p.category}
                     </span>
                   </td>
@@ -198,7 +198,7 @@ export default function AdminProperties() {
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => toggleField(p.id, "featured", p.featured)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                      className={`w-8 h-8 flex items-center justify-center border border-black/20 transition-colors ${
                         p.featured ? "bg-black text-white" : "bg-black/10 text-black/30"
                       }`}
                     >
@@ -208,8 +208,8 @@ export default function AdminProperties() {
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => toggleField(p.id, "published", p.published)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                        p.published ? "bg-green-500 text-white" : "bg-black/10 text-black/30"
+                      className={`w-8 h-8 flex items-center justify-center border border-black/20 transition-colors ${
+                        p.published ? "bg-black text-white" : "bg-black/10 text-black/30"
                       }`}
                     >
                       <Check size={14} />
@@ -219,13 +219,13 @@ export default function AdminProperties() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => openEdit(p)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-black/5 hover:bg-black/10 text-black/60 transition-colors"
+                        className="w-8 h-8 flex items-center justify-center bg-black/5 hover:bg-black/10 text-black/60 transition-colors"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => handleDelete(p.id)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 transition-colors"
+                        className="w-8 h-8 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -241,8 +241,8 @@ export default function AdminProperties() {
       {/* Modal Form */}
       {showForm && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-start justify-center pt-8 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-2xl mx-4 mb-8 shadow-2xl">
-            <div className="flex items-center justify-between px-8 py-6 border-b border-black/10">
+          <div className="bg-white w-full max-w-2xl mx-4 mb-8 shadow-2xl">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-black/20">
               <h2 className="text-xl font-black uppercase tracking-tighter">
                 {editing ? "Edit Property" : "New Property"}
               </h2>
@@ -261,7 +261,7 @@ export default function AdminProperties() {
                   list="category-suggestions"
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                  className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
                 />
                 <datalist id="category-suggestions">
                   {Array.from(new Set([...CATEGORIES, ...properties.map((p) => p.category).filter(Boolean)])).map((c) => (
@@ -280,7 +280,7 @@ export default function AdminProperties() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={3}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none"
+                  className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-none"
                 />
               </div>
               <ImageField folder="properties" label="Main Image" value={form.image_url} onChange={(v) => setForm({ ...form, image_url: v })} />
@@ -301,13 +301,13 @@ export default function AdminProperties() {
                   onChange={(e) => setGalleryInput(e.target.value)}
                   rows={4}
                   placeholder={"https://...jpg\nhttps://...jpg"}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-xs font-mono outline-none focus:border-black transition-colors resize-y"
+                  className="w-full border-2 border-black/20 px-4 py-3 text-xs font-mono outline-none focus:border-black transition-colors resize-y"
                 />
                 {galleryInput.trim() && (
                   <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
                     {galleryInput.split(/\n+/).map((u) => u.trim()).filter(Boolean).map((url, i) => (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img key={i} src={url} alt={`Gallery ${i + 1}`} className="h-20 w-28 object-cover rounded-lg border border-black/10 shrink-0" />
+                      <img key={i} src={url} alt={`Gallery ${i + 1}`} className="h-20 w-28 object-cover border border-black/20 shrink-0" />
                     ))}
                   </div>
                 )}
@@ -325,7 +325,7 @@ export default function AdminProperties() {
                 </label>
               </div>
             </div>
-            <div className="flex justify-end gap-3 px-8 py-6 border-t border-black/10">
+            <div className="flex justify-end gap-3 px-8 py-6 border-t border-black/20">
               <button
                 onClick={() => setShowForm(false)}
                 className="px-6 py-3 text-xs font-bold uppercase tracking-[2px] text-black/40 hover:text-black transition-colors"
@@ -335,7 +335,7 @@ export default function AdminProperties() {
               <button
                 onClick={handleSave}
                 disabled={saving || !form.name}
-                className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors rounded-lg disabled:opacity-40"
+                className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors disabled:opacity-40"
               >
                 {saving ? "Saving..." : editing ? "Update" : "Create"}
               </button>
@@ -355,7 +355,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+        className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
       />
     </div>
   );

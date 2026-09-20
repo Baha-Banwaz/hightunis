@@ -247,14 +247,14 @@ export default function AdminInquiries() {
       {loading ? (
         <div className="text-sm font-bold uppercase tracking-widest text-black/30 animate-pulse">Loading...</div>
       ) : items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-black/10 p-16 text-center">
+        <div className="bg-white border border-black/20 p-16 text-center">
           <Inbox size={48} className="text-black/20 mx-auto mb-4" />
           <p className="text-sm text-black/40 font-bold uppercase tracking-widest">No inquiries yet</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {items.map((inq) => (
-            <div key={inq.id} className="bg-white rounded-xl border border-black/10 p-6">
+            <div key={inq.id} className="bg-white border border-black/20 p-6">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -292,7 +292,7 @@ export default function AdminInquiries() {
                   <select
                     value={inq.status}
                     onChange={(e) => updateStatus(inq.id, e.target.value)}
-                    className="text-xs font-bold uppercase tracking-[2px] border border-black/20 rounded-lg px-3 py-2 bg-white outline-none cursor-pointer"
+                    className="text-xs font-bold uppercase tracking-[2px] border border-black/20 px-3 py-2 bg-white outline-none cursor-pointer"
                   >
                     {allowedStatusOptions(inq.status).map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -300,7 +300,7 @@ export default function AdminInquiries() {
                   </select>
                   <button
                     onClick={() => openEdit(inq)}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center bg-black/5 hover:bg-black/10 text-black/60 transition-colors"
+                    className="w-9 h-9 flex items-center justify-center border border-black/20 hover:border-black hover:bg-black hover:text-white text-black/60 transition-colors"
                     title="Edit inquiry"
                   >
                     <Pencil size={14} />
@@ -315,12 +315,12 @@ export default function AdminInquiries() {
               {(inq.phone || inq.check_in) && (
                 <div className="flex flex-wrap items-center gap-3 mb-3">
                   {inq.phone && (
-                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] bg-black/5 px-3 py-1.5 rounded-full">
+                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] bg-black/5 px-3 py-1.5">
                       <Phone size={11} /> {inq.phone}
                     </span>
                   )}
                   {inq.check_in && inq.check_out && (
-                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] bg-black text-white px-3 py-1.5 rounded-full">
+                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] bg-black text-white px-3 py-1.5">
                       <CalendarDays size={11} /> {inq.check_in} → {inq.check_out}
                     </span>
                   )}
@@ -335,8 +335,8 @@ export default function AdminInquiries() {
       {/* Edit modal */}
       {editing && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-start justify-center pt-8 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-2xl mx-4 mb-8 shadow-2xl">
-            <div className="flex items-center justify-between px-8 py-6 border-b border-black/10">
+          <div className="bg-white w-full max-w-2xl mx-4 mb-8 shadow-2xl">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-black/20">
               <h2 className="text-xl font-black uppercase tracking-tighter">Edit Inquiry</h2>
               <button onClick={() => setEditing(null)} className="text-black/40 hover:text-black"><X size={20} /></button>
             </div>
@@ -350,7 +350,7 @@ export default function AdminInquiries() {
                 <select
                   value={fStatus}
                   onChange={(e) => setFStatus(e.target.value)}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                  className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
                 >
                   {/* Legal targets come from the status the inquiry was
                       opened with, not from whatever is currently picked. */}
@@ -367,7 +367,7 @@ export default function AdminInquiries() {
                   <select
                     value={fCurrency}
                     onChange={(e) => setFCurrency(e.target.value)}
-                    className="border border-black/20 rounded-lg px-3 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                    className="border border-black/20 px-3 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
                   >
                     {SUPPORTED_CURRENCIES.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -379,7 +379,7 @@ export default function AdminInquiries() {
                     value={fAmount}
                     onChange={(e) => { setFAmount(e.target.value); setFormError(""); }}
                     placeholder="1700"
-                    className="flex-1 border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                    className="flex-1 border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
                   />
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/40 mt-2">
@@ -391,7 +391,7 @@ export default function AdminInquiries() {
                 <select
                   value={fPropertyId}
                   onChange={(e) => setFPropertyId(e.target.value)}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                  className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
                 >
                   <option value="">— none —</option>
                   {properties.map((p) => (
@@ -416,11 +416,11 @@ export default function AdminInquiries() {
                   value={fMessage}
                   onChange={(e) => setFMessage(e.target.value)}
                   rows={4}
-                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-y"
+                  className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors resize-y"
                 />
               </div>
               {fStatus === "booked" && (
-                <p className="md:col-span-2 text-[10px] font-bold uppercase tracking-[2px] text-green-700 bg-green-50 rounded-lg px-4 py-3">
+                <p className="md:col-span-2 text-[10px] font-bold uppercase tracking-[2px] text-black/60 bg-white px-4 py-3">
                   Booked — these dates will be blocked on the website calendar for the selected property.
                 </p>
               )}
@@ -428,10 +428,10 @@ export default function AdminInquiries() {
                 <p className="md:col-span-2 text-red-500 text-xs font-bold uppercase tracking-widest">{formError}</p>
               )}
             </div>
-            <div className="flex justify-between gap-3 px-8 py-6 border-t border-black/10">
+            <div className="flex justify-between gap-3 px-8 py-6 border-t border-black/20">
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-[2px] text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-[2px] text-red-500 hover:bg-red-50 transition-colors"
               >
                 <Trash2 size={14} /> Delete
               </button>
@@ -440,7 +440,7 @@ export default function AdminInquiries() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors rounded-lg disabled:opacity-40"
+                  className="flex items-center gap-2 bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-[2px] hover:bg-black/80 transition-colors disabled:opacity-40"
                 >
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -461,7 +461,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+        className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
       />
     </div>
   );
