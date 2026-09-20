@@ -11,7 +11,7 @@ export default function Footer() {
   return (
     <footer className="bg-black text-white pt-24 pb-8 overflow-hidden">
       <div className="px-6 lg:px-12 max-w-[1600px] mx-auto border-t border-white/20 pt-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-24">
           <div className="col-span-1 md:col-span-2">
             <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/50 mb-6 block">Headquarters</span>
             <p className="text-xl font-bold tracking-tight mb-8">
@@ -31,6 +31,15 @@ export default function Footer() {
                <li><Link href="/blog" className="hover:text-white/50 transition-colors">Journal</Link></li>
                <li><Link href="/about" className="hover:text-white/50 transition-colors">About</Link></li>
                <li><Link href="/contact" className="hover:text-white/50 transition-colors">Contact</Link></li>
+             </ul>
+          </div>
+
+          <div>
+             <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/50 mb-6 block">Legal</span>
+             <ul className="space-y-4 text-xs font-bold uppercase tracking-[2px]">
+               <li><Link href="/privacy" className="hover:text-white/50 transition-colors">Privacy</Link></li>
+               <li><Link href="/terms" className="hover:text-white/50 transition-colors">Terms</Link></li>
+               <li><Link href="/cookies" className="hover:text-white/50 transition-colors">Cookies</Link></li>
              </ul>
           </div>
 

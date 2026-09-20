@@ -6,7 +6,11 @@ import { logQueryError } from "@/lib/query-log";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticRoutes: MetadataRoute.Sitemap = ["", "/listings", "/services", "/blog", "/about", "/contact"].map(
+  const staticRoutes: MetadataRoute.Sitemap = // /privacy, /terms and /cookies are deliberately absent: they carry
+  // robots: noindex while they are drafts, and listing a noindex page in a
+  // sitemap tells search engines two contradictory things. Add them here once
+  // the noindex comes off.
+  ["", "/listings", "/services", "/blog", "/about", "/contact"].map(
     (path) => ({
       url: `${SITE_URL}${path}`,
       changeFrequency: "weekly",
