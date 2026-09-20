@@ -10,7 +10,14 @@ import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-session";
 //   /admin/login      - the form
 //   /api/admin/login  - POST to sign in, DELETE to sign out
 
-const PUBLIC_PATHS = new Set(["/admin/login", "/api/admin/login"]);
+//   /api/admin/cron/*  - Vercel's scheduler sends no cookie. These routes
+//                        authenticate with CRON_SECRET as a bearer token and
+//                        fail closed if it is unset.
+const PUBLIC_PATHS = new Set([
+  "/admin/login",
+  "/api/admin/login",
+  "/api/admin/cron/finish-stays",
+]);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   canTransition,
+  qualifiesForAutoFinish,
   INQUIRY_STATUSES,
   INQUIRY_TRANSITIONS,
   isInquiryStatus,
@@ -113,5 +114,43 @@ test("no status is stranded: every status is reachable from another", () => {
   for (const s of INQUIRY_STATUSES) {
     if (s === "new") continue; // the entry point
     assert.ok(reachable.has(s), `${s} cannot be reached from any other status`);
+  }
+});
+
+test("auto-finish: only booked stays whose check-out has passed", () => {
+  const today = "2026-09-20";
+
+  assert.ok(qualifiesForAutoFinish({ status: "booked", check_out: "2026-09-19" }, today));
+  assert.ok(qualifiesForAutoFinish({ status: "booked", check_out: "2026-08-16" }, today));
+
+  // The check-out day itself has not passed yet.
+  assert.ok(!qualifiesForAutoFinish({ status: "booked", check_out: "2026-09-20" }, today));
+  assert.ok(!qualifiesForAutoFinish({ status: "booked", check_out: "2026-09-21" }, today));
+
+  // A cancelled stay is NEVER auto-finished, however old.
+  assert.ok(!qualifiesForAutoFinish({ status: "cancelled", check_out: "2020-01-01" }, today));
+
+  // Nor is anything else.
+  for (const status of ["new", "contacted", "finished", null]) {
+    assert.ok(!qualifiesForAutoFinish({ status, check_out: "2020-01-01" }, today), String(status));
+  }
+
+  // No date, nothing to compare.
+  assert.ok(!qualifiesForAutoFinish({ status: "booked", check_out: null }, today));
+  assert.ok(!qualifiesForAutoFinish({ status: "booked" }, today));
+});
+
+test("auto-finish agrees with the OVERDUE flag", () => {
+  // The chip and the cron must never disagree about which rows are past due,
+  // or the UI will show a backlog the job refuses to clear.
+  const today = new Date(2026, 8, 20);
+  const todayISO = "2026-09-20";
+  for (const check_out of ["2026-08-16", "2026-09-19", "2026-09-20", "2026-09-25"]) {
+    const row = { status: "booked", check_out, confirmed_at: "2026-07-01T00:00:00Z", amount_cents: null };
+    assert.equal(
+      qualifiesForAutoFinish(row, todayISO),
+      isOverdue(row, today),
+      check_out
+    );
   }
 });

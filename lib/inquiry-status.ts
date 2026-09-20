@@ -94,5 +94,24 @@ export function isMissingAmount(inquiry: InquiryFlagInput): boolean {
   return Boolean(inquiry.confirmed_at) && (inquiry.amount_cents ?? null) === null;
 }
 
+/**
+ * The auto-finish rule, in one place so the cron query, the test and the
+ * OVERDUE flag cannot disagree about what "past" means.
+ *
+ * Only `booked` qualifies. A cancelled stay can never be auto-finished,
+ * because the filter is the status itself rather than a special case that
+ * someone could later remove.
+ */
+export function qualifiesForAutoFinish(
+  inquiry: { status: string | null; check_out?: string | null },
+  todayISO: string
+): boolean {
+  return (
+    inquiry.status === "booked" &&
+    typeof inquiry.check_out === "string" &&
+    inquiry.check_out < todayISO
+  );
+}
+
 export const MISSING_AMOUNT_WARNING =
   "Saved as booked with no amount recorded. Revenue figures will exclude this booking until an amount is added.";
