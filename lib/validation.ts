@@ -110,6 +110,28 @@ export const publicInquirySchema = z.discriminatedUnion("kind", [
 
 export type PublicInquiry = z.infer<typeof publicInquirySchema>;
 
+/**
+ * Inquiry list filters. These arrive from the URL query string, so the UI's
+ * filter state survives a refresh and is shareable.
+ *
+ * dateField picks what the range means: when the enquiry arrived, or when the
+ * stay happens. They answer different questions and are never both applied.
+ */
+export const inquiryFilterSchema = z
+  .object({
+    status: z.enum(INQUIRY_STATUSES).optional(),
+    propertyId: z.uuid().optional(),
+    from: z.iso.date().optional(),
+    to: z.iso.date().optional(),
+    dateField: z.enum(["created", "stay"]).default("created"),
+  })
+  .refine((v) => !v.from || !v.to || v.to >= v.from, {
+    message: "The end of the range must be on or after the start",
+    path: ["to"],
+  });
+
+export type InquiryFilters = z.infer<typeof inquiryFilterSchema>;
+
 export const availabilityQuerySchema = z.object({
   propertyId: z.uuid(),
 });

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-session";
-import { parseAdminPayload } from "@/lib/validation";
+import { parseAdminPayload, inquiryFilterSchema } from "@/lib/validation";
 import {
   ACTOR_ADMIN,
   canTransition,
@@ -388,8 +388,44 @@ export async function GET(
     return NextResponse.json({ error: "Invalid collection" }, { status: 400 });
   }
 
-  // Allow basic sorting
   let query = supabaseAdmin.from(collection).select("*");
+
+  // Inquiries filter server-side, so the count the UI shows is the real one
+  // rather than a count of whatever happened to be fetched.
+  if (collection === "inquiries") {
+    const filters = inquiryFilterSchema.safeParse({
+      status: searchParams.get("status") || undefined,
+      propertyId: searchParams.get("propertyId") || undefined,
+      from: searchParams.get("from") || undefined,
+      to: searchParams.get("to") || undefined,
+      dateField: searchParams.get("dateField") || undefined,
+    });
+
+    if (!filters.success) {
+      return NextResponse.json(
+        { error: filters.error.issues.map((i) => i.message).join("; ") },
+        { status: 400 }
+      );
+    }
+
+    const f = filters.data;
+    if (f.status) query = query.eq("status", f.status);
+    if (f.propertyId) query = query.eq("property_id", f.propertyId);
+
+    if (f.dateField === "stay") {
+      // A stay overlaps the window if it starts before the window ends and
+      // ends after it begins - not merely if check_in falls inside it.
+      if (f.to) query = query.lte("check_in", f.to);
+      if (f.from) query = query.gte("check_out", f.from);
+    } else {
+      // created_at is a timestamp; widen "to" to the end of that day.
+      if (f.from) query = query.gte("created_at", `${f.from}T00:00:00.000Z`);
+      if (f.to) query = query.lte("created_at", `${f.to}T23:59:59.999Z`);
+    }
+
+    // Newest first, always.
+    query = query.order("created_at", { ascending: false });
+  }
   if (searchParams.has("orderColumn")) {
     const orderColumn = searchParams.get("orderColumn")!;
     // Column names only - never let a caller shape the PostgREST query string.
@@ -397,14 +433,8 @@ export async function GET(
       return NextResponse.json({ error: "Invalid sort column" }, { status: 400 });
     }
     query = query.order(orderColumn, { ascending: searchParams.get("ascending") !== "false" });
-  } else if (collection !== "inquiries") {
-     if (collection === "properties" || collection === "services" || collection === "team" || collection === "testimonials") {
-       // A good default is order if it exists, but since we can't introspect easily via HTTP, 
-       // we'll default based on table if explicitly known or rely on client's sort parameter
-       if (["properties", "services"].includes(collection)) {
-         query = query.order("order", { ascending: true });
-       }
-     }
+  } else if (collection === "properties" || collection === "services") {
+    query = query.order("order", { ascending: true });
   }
 
   const { data, error } = await query;

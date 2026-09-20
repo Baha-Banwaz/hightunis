@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { StatusChip, MetaChip, allowedStatusOptions } from "../../components/StatusChip";
 import { isMissingAmount, isOverdue } from "@/lib/inquiry-status";
 import { centsToInput, formatMoney, inputToCents, SUPPORTED_CURRENCIES } from "@/lib/money";
@@ -43,7 +44,28 @@ function parseISODate(value: string | null | undefined): Date | null {
   return new Date(y, m - 1, d);
 }
 
-export default function AdminInquiries() {
+const STATUS_FILTERS = ["new", "contacted", "booked", "cancelled", "finished"] as const;
+
+function InquiriesView() {
+  const router = useRouter();
+  const params = useSearchParams();
+
+  // Filter state lives in the URL, so it survives a refresh, works with
+  // back/forward, and a filtered view can be shared as a link.
+  const fStatusFilter = params.get("status") ?? "";
+  const fPropertyFilter = params.get("propertyId") ?? "";
+  const fFrom = params.get("from") ?? "";
+  const fTo = params.get("to") ?? "";
+  const fDateField = params.get("dateField") === "stay" ? "stay" : "created";
+  const hasFilters = Boolean(fStatusFilter || fPropertyFilter || fFrom || fTo);
+
+  const setFilter = (key: string, value: string) => {
+    const next = new URLSearchParams(params.toString());
+    if (value) next.set(key, value);
+    else next.delete(key);
+    router.replace(next.toString() ? `?${next}` : "?", { scroll: false });
+  };
+
   const [items, setItems] = useState<Inquiry[]>([]);
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,9 +92,16 @@ export default function AdminInquiries() {
   const [fCurrency, setFCurrency] = useState("EUR");
 
   const fetch_ = async () => {
+    const qs = new URLSearchParams();
+    if (fStatusFilter) qs.set("status", fStatusFilter);
+    if (fPropertyFilter) qs.set("propertyId", fPropertyFilter);
+    if (fFrom) qs.set("from", fFrom);
+    if (fTo) qs.set("to", fTo);
+    qs.set("dateField", fDateField);
+
     try {
       const [inqRes, propsRes] = await Promise.all([
-        fetch("/api/admin/inquiries"),
+        fetch(`/api/admin/inquiries?${qs}`),
         fetch("/api/admin/properties?orderColumn=order&ascending=true"),
       ]);
       if (inqRes.status === 401) {
@@ -90,7 +119,9 @@ export default function AdminInquiries() {
     setLoading(false);
   };
 
-  useEffect(() => { fetch_(); }, []);
+  // Re-runs whenever a filter changes, because the server does the filtering.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetch_(); }, [fStatusFilter, fPropertyFilter, fFrom, fTo, fDateField]);
 
   const propertyName = (id: string | null) =>
     properties.find((p) => p.id === id)?.name ?? null;
@@ -205,9 +236,84 @@ export default function AdminInquiries() {
         <div>
           <h1 className="text-4xl font-black tracking-tighter uppercase text-black">Inquiries</h1>
           <p className="text-sm text-black/40 font-semibold mt-1">
-            {items.length} total • {items.filter((i) => i.status === "new").length} new
+            {loading
+              ? "Loading"
+              : `${items.length} ${items.length === 1 ? "inquiry" : "inquiries"}${
+                  hasFilters ? " matching these filters" : ""
+                }`}
           </p>
         </div>
+      </div>
+
+      <div className="border-2 border-black bg-white p-5 mb-6 flex flex-wrap items-end gap-4">
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Status</label>
+          <select
+            value={fStatusFilter}
+            onChange={(e) => setFilter("status", e.target.value)}
+            className="border-2 border-black/20 px-4 py-2 text-sm font-semibold bg-white outline-none focus:border-black"
+          >
+            <option value="">Any status</option>
+            {STATUS_FILTERS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="min-w-[180px]">
+          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Property</label>
+          <select
+            value={fPropertyFilter}
+            onChange={(e) => setFilter("propertyId", e.target.value)}
+            className="w-full border-2 border-black/20 px-4 py-2 text-sm font-semibold bg-white outline-none focus:border-black"
+          >
+            <option value="">Any property</option>
+            {properties.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Dates refer to</label>
+          <select
+            value={fDateField}
+            onChange={(e) => setFilter("dateField", e.target.value === "stay" ? "stay" : "")}
+            className="border-2 border-black/20 px-4 py-2 text-sm font-semibold bg-white outline-none focus:border-black"
+          >
+            <option value="created">When it arrived</option>
+            <option value="stay">When the stay is</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">From</label>
+          <input
+            type="date"
+            value={fFrom}
+            onChange={(e) => setFilter("from", e.target.value)}
+            className="border-2 border-black/20 px-4 py-2 text-sm font-semibold outline-none focus:border-black"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">To</label>
+          <input
+            type="date"
+            value={fTo}
+            onChange={(e) => setFilter("to", e.target.value)}
+            className="border-2 border-black/20 px-4 py-2 text-sm font-semibold outline-none focus:border-black"
+          />
+        </div>
+
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={() => router.replace("?", { scroll: false })}
+            className="px-5 py-2 text-[10px] font-bold uppercase tracking-[2px] border-2 border-black hover:bg-black hover:text-white transition-colors"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {listError && (
@@ -249,7 +355,9 @@ export default function AdminInquiries() {
       ) : items.length === 0 ? (
         <div className="bg-white border border-black/20 p-16 text-center">
           <Inbox size={48} className="text-black/20 mx-auto mb-4" />
-          <p className="text-sm text-black/40 font-bold uppercase tracking-widest">No inquiries yet</p>
+          <p className="text-sm text-black/40 font-bold uppercase tracking-widest">
+            {hasFilters ? "No inquiries match these filters" : "No inquiries yet"}
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -464,5 +572,19 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
         className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
       />
     </div>
+  );
+}
+
+export default function AdminInquiries() {
+  return (
+    <Suspense
+      fallback={
+        <div className="text-sm font-bold uppercase tracking-widest text-black/30 animate-pulse">
+          Loading...
+        </div>
+      }
+    >
+      <InquiriesView />
+    </Suspense>
   );
 }
