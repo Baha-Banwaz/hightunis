@@ -16,9 +16,14 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_CONFIG.name}`,
   },
   description: SITE_CONFIG.description,
+  // "./" resolves against metadataBase AND the current route, so one line
+  // gives every page its own canonical, including dynamic ones. A bare "/"
+  // would make every page claim the homepage.
+  alternates: { canonical: "./" },
   openGraph: {
     siteName: SITE_CONFIG.name,
     type: "website",
+    url: "./",
   },
 };
 
