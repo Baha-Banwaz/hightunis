@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { StatusChip, MetaChip, allowedStatusOptions } from "../../components/StatusChip";
 import { isMissingAmount, isOverdue } from "@/lib/inquiry-status";
+import { centsToInput, formatMoney, inputToCents, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { Inbox, Mail, Clock, Phone, CalendarDays, Pencil, X, Trash2 } from "lucide-react";
 import DatePicker from "@/app/components/DatePicker";
 
@@ -65,6 +66,8 @@ export default function AdminInquiries() {
   const [fPropertyId, setFPropertyId] = useState("");
   const [fCheckIn, setFCheckIn] = useState<Date | null>(null);
   const [fCheckOut, setFCheckOut] = useState<Date | null>(null);
+  const [fAmount, setFAmount] = useState("");
+  const [fCurrency, setFCurrency] = useState("EUR");
 
   const fetch_ = async () => {
     try {
@@ -127,6 +130,8 @@ export default function AdminInquiries() {
     setFPropertyId(inq.property_id ?? "");
     setFCheckIn(parseISODate(inq.check_in));
     setFCheckOut(parseISODate(inq.check_out));
+    setFAmount(centsToInput(inq.amount_cents));
+    setFCurrency(inq.currency || "EUR");
     setFormError("");
   };
 
@@ -137,6 +142,11 @@ export default function AdminInquiries() {
     }
     if (fCheckIn && fCheckOut && fCheckOut <= fCheckIn) {
       setFormError("Check-out must be after check-in");
+      return;
+    }
+    const amountCents = inputToCents(fAmount);
+    if (amountCents === "invalid") {
+      setFormError("Booking value must be a positive number, for example 1700 or 1700.50");
       return;
     }
     if (fStatus === "booked" && (!fPropertyId || !fCheckIn || !fCheckOut)) {
@@ -157,6 +167,8 @@ export default function AdminInquiries() {
         property_id: fPropertyId || null,
         check_in: fCheckIn ? toISODate(fCheckIn) : null,
         check_out: fCheckOut ? toISODate(fCheckOut) : null,
+        amount_cents: amountCents,
+        currency: fCurrency,
       }),
     });
     setSaving(false);
@@ -257,10 +269,14 @@ export default function AdminInquiries() {
                         Overdue
                       </MetaChip>
                     )}
-                    {isMissingAmount(inq) && (
+                    {isMissingAmount(inq) ? (
                       <MetaChip tone="warn" title="Confirmed with no amount - excluded from revenue">
                         No amount
                       </MetaChip>
+                    ) : (
+                      inq.amount_cents != null && (
+                        <MetaChip>{formatMoney(inq.amount_cents, inq.currency || "EUR")}</MetaChip>
+                      )
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-xs text-black/40">
@@ -342,6 +358,33 @@ export default function AdminInquiries() {
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">
+                  Booking value
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={fCurrency}
+                    onChange={(e) => setFCurrency(e.target.value)}
+                    className="border border-black/20 rounded-lg px-3 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                  >
+                    {SUPPORTED_CURRENCIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={fAmount}
+                    onChange={(e) => { setFAmount(e.target.value); setFormError(""); }}
+                    placeholder="1700"
+                    className="flex-1 border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
+                  />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/40 mt-2">
+                  Leave empty if not priced yet. Excluded from revenue until set.
+                </p>
               </div>
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Property / Villa</label>
