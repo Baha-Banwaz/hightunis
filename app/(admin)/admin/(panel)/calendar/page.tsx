@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, X, Trash2, User, Mail, Phone } from "lucide-react";
 import DatePicker from "@/app/components/DatePicker";
 import { StatusChip, allowedStatusOptions } from "../../components/StatusChip";
+import { addDaysISO, colourForProperty, layoutWeek, weekStartsForMonth } from "@/lib/calendar-layout";
+import { centsToInput, formatMoney, inputToCents, SUPPORTED_CURRENCIES } from "@/lib/money";
 
 interface Booking {
   id: string;
@@ -25,6 +27,8 @@ interface LinkedInquiry {
   status: string;
   check_in: string | null;
   check_out: string | null;
+  amount_cents?: number | null;
+  currency?: string | null;
 }
 
 interface PropertyOption {
@@ -58,6 +62,10 @@ export default function AdminCalendar() {
   // Keyed by inquiry id. Only bookings created from an inquiry have one.
   const [inquiries, setInquiries] = useState<Record<string, LinkedInquiry>>({});
   const [statusBusy, setStatusBusy] = useState<string | null>(null);
+  const [fAmount, setFAmount] = useState("");
+  const [fCurrency, setFCurrency] = useState("EUR");
+  const [priceBusy, setPriceBusy] = useState(false);
+  const [priceSaved, setPriceSaved] = useState(false);
   const [filterPropertyId, setFilterPropertyId] = useState("");
   const [loading, setLoading] = useState(true);
   const [migrationMissing, setMigrationMissing] = useState(false);
@@ -74,6 +82,9 @@ export default function AdminCalendar() {
   const [fGuestEmail, setFGuestEmail] = useState("");
   const [fGuestPhone, setFGuestPhone] = useState("");
   const [fNote, setFNote] = useState("");
+
+  // Colour is assigned from this order, so a villa keeps its colour.
+  const propertyOrder = useMemo(() => properties.map((p) => p.id), [properties]);
 
   const propertyName = useMemo(() => {
     const map: Record<string, string> = {};
@@ -107,6 +118,43 @@ export default function AdminCalendar() {
     // The block may have just been released, so close the modal and reload.
     setModalOpen(false);
     await fetchAll();
+  };
+
+  /**
+   * The value belongs to the inquiry, not to this booking row - sync deletes
+   * and recreates booking rows on every inquiry edit, so an amount stored
+   * there would not survive.
+   */
+  const savePrice = async (inquiryId: string) => {
+    const cents = inputToCents(fAmount);
+    if (cents === "invalid") {
+      setFormError("Booking value must be a positive number, for example 1700 or 1700.50");
+      return;
+    }
+
+    setPriceBusy(true);
+    setFormError("");
+    setPriceSaved(false);
+
+    const res = await fetch(`/api/admin/inquiries?id=${inquiryId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount_cents: cents, currency: fCurrency }),
+    }).catch(() => null);
+
+    const body = await res?.json().catch(() => null);
+    setPriceBusy(false);
+
+    if (!res?.ok) {
+      setFormError(body?.error ?? "Could not save the value.");
+      return;
+    }
+    setPriceSaved(true);
+    setInquiries((prev) =>
+      prev[inquiryId]
+        ? { ...prev, [inquiryId]: { ...prev[inquiryId], amount_cents: cents, currency: fCurrency } }
+        : prev
+    );
   };
 
   const fetchAll = async () => {
@@ -151,18 +199,7 @@ export default function AdminCalendar() {
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
   const todayISO = toISODate(new Date());
-
-  const bookingsForDay = (day: number) => {
-    const date = new Date(year, month, day);
-    return visibleBookings.filter((b) => {
-      const start = parseISODate(b.start_date);
-      const end = parseISODate(b.end_date);
-      return date >= start && date < end;
-    });
-  };
 
   const upcoming = useMemo(
     () =>
@@ -197,6 +234,10 @@ export default function AdminCalendar() {
     setFGuestEmail(b.guest_email ?? "");
     setFGuestPhone(b.guest_phone ?? "");
     setFNote(b.note ?? "");
+    const linked = b.inquiry_id ? inquiries[b.inquiry_id] : undefined;
+    setFAmount(centsToInput(linked?.amount_cents));
+    setFCurrency(linked?.currency || "EUR");
+    setPriceSaved(false);
     setFormError("");
     setModalOpen(true);
   };
@@ -352,49 +393,95 @@ export default function AdminCalendar() {
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7">
-              {Array.from({ length: firstWeekday }).map((_, i) => (
-                <div key={`pad-${i}`} className="min-h-[110px] border-b border-r border-black/5 bg-black/[0.015]" />
-              ))}
-              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-                const dayISO = toISODate(new Date(year, month, day));
-                const isToday = dayISO === todayISO;
-                const dayBookings = bookingsForDay(day);
-                return (
-                  <div key={day} className={`min-h-[110px] border-b border-r border-black/5 p-2 flex flex-col gap-1 ${isToday ? "bg-black/[0.03]" : ""}`}>
-                    <span
-                      className={`text-xs font-black self-start px-1.5 py-0.5 ${
-                        isToday ? "bg-black text-white" : "text-black/50"
-                      }`}
-                    >
-                      {day}
-                    </span>
-                    {dayBookings.map((b) => (
-                      <button
-                        key={b.id}
-                        onClick={() => openEdit(b)}
-                        title={`${propertyName[b.property_id] ?? "Property"}${guestLabel(b) ? ` — ${guestLabel(b)}` : ""} (${b.start_date} → ${b.end_date}). Click to edit.`}
-                        className={`text-left text-[9px] font-bold uppercase tracking-[1px] px-2 py-1 truncate transition-colors ${
-                          b.source === "inquiry"
-                            ? "bg-accent text-black hover:bg-accent/70"
-                            : "bg-black text-white hover:bg-black/70"
-                        }`}
-                      >
-                        {b.start_date === dayISO ? "◂ " : ""}
-                        {propertyName[b.property_id] ?? "Property"}
-                        {guestLabel(b) ? ` — ${guestLabel(b)}` : ""}
-                      </button>
-                    ))}
+            {weekStartsForMonth(year, month).map((weekStart) => {
+              const { segments, lanes } = layoutWeek(visibleBookings, weekStart);
+              // Enough room for the date plus every stacked bar in this week.
+              const minHeight = 34 + Math.max(1, lanes) * 24 + 8;
+
+              return (
+                <div key={weekStart} className="relative border-b border-black/20 last:border-b-0">
+                  {/* Day cells: the grid people read dates from. */}
+                  <div className="grid grid-cols-7" style={{ minHeight }}>
+                    {Array.from({ length: 7 }, (_, i) => {
+                      const dayISO = addDaysISO(weekStart, i);
+                      const inMonth = Number(dayISO.slice(5, 7)) === month + 1;
+                      const isToday = dayISO === todayISO;
+                      return (
+                        <div
+                          key={dayISO}
+                          className={`border-r border-black/10 last:border-r-0 p-2 ${
+                            !inMonth ? "bg-black/[0.02]" : isToday ? "bg-black/[0.04]" : ""
+                          }`}
+                        >
+                          <span
+                            className={`text-xs font-black px-1.5 py-0.5 inline-block ${
+                              isToday ? "bg-black text-white" : inMonth ? "text-black/50" : "text-black/20"
+                            }`}
+                          >
+                            {Number(dayISO.slice(8, 10))}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Bars, spanning the nights they actually occupy. */}
+                  <div
+                    className="absolute left-0 right-0 grid grid-cols-7 gap-y-1 px-px pointer-events-none"
+                    style={{ top: 34 }}
+                  >
+                    {segments.map((seg) => {
+                      const c = colourForProperty(seg.item.property_id, propertyOrder);
+                      const manual = seg.item.source !== "inquiry";
+                      const label = `${propertyName[seg.item.property_id] ?? "Property"}${
+                        guestLabel(seg.item) ? ` ${guestLabel(seg.item)}` : ""
+                      }`;
+                      return (
+                        <button
+                          key={`${seg.item.id}-${weekStart}`}
+                          onClick={() => openEdit(seg.item)}
+                          title={`${label} · ${seg.item.start_date} to ${seg.item.end_date} · ${nightsBetween(
+                            seg.item.start_date,
+                            seg.item.end_date
+                          )} nights${manual ? " · manual block" : ""}. Click to edit.`}
+                          style={{
+                            gridColumn: `${seg.startCol} / span ${seg.span}`,
+                            gridRow: seg.lane + 1,
+                            backgroundColor: manual ? "transparent" : c.bg,
+                            color: manual ? "#000000" : c.fg,
+                            boxShadow: manual ? `inset 0 0 0 2px ${c.bg}` : undefined,
+                          }}
+                          className="pointer-events-auto text-left text-[9px] font-bold uppercase tracking-[1px] px-2 py-1 truncate hover:opacity-80 transition-opacity"
+                        >
+                          {seg.continuesBefore ? "< " : ""}
+                          {label}
+                          {seg.continuesAfter ? " >" : ""}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-6 mt-4 text-[10px] font-bold uppercase tracking-[2px] text-black/40">
-            <span className="flex items-center gap-2"><span className="w-3 h-3 bg-black inline-block" /> Manual block</span>
-            <span className="flex items-center gap-2"><span className="w-3 h-3 bg-accent inline-block" /> Booked inquiry</span>
+          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] font-bold uppercase tracking-[2px] text-black/50">
+            {properties
+              .filter((p) => visibleBookings.some((b) => b.property_id === p.id))
+              .map((p) => (
+                <span key={p.id} className="flex items-center gap-2">
+                  <span
+                    className="w-3 h-3 inline-block"
+                    style={{ backgroundColor: colourForProperty(p.id, propertyOrder).bg }}
+                  />
+                  {p.name}
+                </span>
+              ))}
+            <span className="flex items-center gap-2 text-black/40">
+              <span className="w-3 h-3 inline-block" style={{ boxShadow: "inset 0 0 0 2px #767676" }} />
+              Outlined = manual block
+            </span>
           </div>
 
           {/* Upcoming */}
@@ -453,6 +540,47 @@ export default function AdminCalendar() {
                       <option key={st} value={st}>{st}</option>
                     ))}
                   </select>
+                  <div className="border-t border-black/20 pt-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">
+                      Booking value
+                    </span>
+                    <div className="flex gap-2">
+                      <select
+                        value={fCurrency}
+                        onChange={(e) => { setFCurrency(e.target.value); setPriceSaved(false); }}
+                        className="border-2 border-black/20 px-3 py-2 text-sm font-semibold bg-white outline-none focus:border-black"
+                      >
+                        {SUPPORTED_CURRENCIES.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={fAmount}
+                        onChange={(e) => { setFAmount(e.target.value); setPriceSaved(false); setFormError(""); }}
+                        placeholder="1700"
+                        className="flex-1 border-2 border-black/20 px-4 py-2 text-sm font-semibold outline-none focus:border-black"
+                      />
+                      <button
+                        type="button"
+                        disabled={priceBusy}
+                        onClick={() => savePrice(editing.inquiry_id!)}
+                        className="px-5 py-2 text-[10px] font-bold uppercase tracking-[2px] bg-black text-white hover:bg-black/80 transition-colors disabled:opacity-40"
+                      >
+                        {priceBusy ? "Saving" : priceSaved ? "Saved" : "Save"}
+                      </button>
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/40 mt-2">
+                      {inquiries[editing.inquiry_id].amount_cents != null
+                        ? `Currently ${formatMoney(
+                            inquiries[editing.inquiry_id].amount_cents as number,
+                            inquiries[editing.inquiry_id].currency || "EUR"
+                          )}`
+                        : "Not priced yet, so excluded from revenue"}
+                    </p>
+                  </div>
+
                   <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/40 leading-[1.6]">
                     Cancelling releases these dates and removes this block. Editing the
                     inquiry itself overwrites the dates shown below.
