@@ -53,7 +53,7 @@ export default function Navbar() {
               alt="HighTunis"
               width={583}
               height={509}
-              className="h-10 md:h-14 lg:h-16 w-auto object-contain transition-all duration-300"
+              className="h-[1.5rem] md:h-[2.1rem] lg:h-[2.4rem] w-auto object-contain transition-all duration-300"
               priority
             />
           </Link>
