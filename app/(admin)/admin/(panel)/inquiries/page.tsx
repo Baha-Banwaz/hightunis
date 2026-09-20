@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { StatusChip, MetaChip, allowedStatusOptions } from "../../components/StatusChip";
 import { Inbox, Mail, Clock, Phone, CalendarDays, Pencil, X, Trash2 } from "lucide-react";
 import DatePicker from "@/app/components/DatePicker";
 
@@ -23,14 +24,8 @@ interface PropertyOption {
   name: string;
 }
 
-const STATUS_OPTIONS = ["new", "contacted", "booked", "finished"];
-
-const STATUS_COLORS: Record<string, string> = {
-  new: "bg-blue-100 text-blue-700",
-  contacted: "bg-yellow-100 text-yellow-700",
-  booked: "bg-green-100 text-green-700",
-  finished: "bg-stone-200 text-stone-600",
-};
+// Status colours and the legal option list live in StatusChip, shared with
+// the calendar so the two views cannot disagree.
 
 function toISODate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -214,13 +209,9 @@ export default function AdminInquiries() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg font-black tracking-tighter uppercase">{inq.name}</h3>
-                    <span className={`text-[10px] font-bold uppercase tracking-[2px] px-3 py-1 rounded-full ${STATUS_COLORS[inq.status] || STATUS_COLORS["new"]}`}>
-                      {inq.status}
-                    </span>
+                    <StatusChip status={inq.status} />
                     {propertyName(inq.property_id) && (
-                      <span className="text-[10px] font-bold uppercase tracking-[2px] px-3 py-1 rounded-full bg-black/5 text-black/60">
-                        {propertyName(inq.property_id)}
-                      </span>
+                      <MetaChip>{propertyName(inq.property_id)}</MetaChip>
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-xs text-black/40">
@@ -238,10 +229,7 @@ export default function AdminInquiries() {
                     onChange={(e) => updateStatus(inq.id, e.target.value)}
                     className="text-xs font-bold uppercase tracking-[2px] border border-black/20 rounded-lg px-3 py-2 bg-white outline-none cursor-pointer"
                   >
-                    {(STATUS_OPTIONS.includes(inq.status)
-                      ? STATUS_OPTIONS
-                      : [inq.status, ...STATUS_OPTIONS]
-                    ).map((s) => (
+                    {allowedStatusOptions(inq.status).map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
@@ -299,7 +287,9 @@ export default function AdminInquiries() {
                   onChange={(e) => setFStatus(e.target.value)}
                   className="w-full border border-black/20 rounded-lg px-4 py-3 text-sm font-semibold outline-none focus:border-black transition-colors"
                 >
-                  {(STATUS_OPTIONS.includes(fStatus) ? STATUS_OPTIONS : [fStatus, ...STATUS_OPTIONS]).map((s) => (
+                  {/* Legal targets come from the status the inquiry was
+                      opened with, not from whatever is currently picked. */}
+                  {allowedStatusOptions(editing?.status ?? null).map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

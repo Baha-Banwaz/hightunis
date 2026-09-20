@@ -12,6 +12,11 @@
   --color-stone: #f2f2f2;
   --color-mid-blue: #1a1a1a;
   --color-gold: #000000;
+
+  /* The single accent. Admin only, and only for the booked status.
+     Paired with BLACK text: 6.24:1. Against white it is 3.36:1, which
+     fails WCAG AA for the 10px chip labels. */
+  --color-accent: #A8874E;
 }
 
 @layer base {
