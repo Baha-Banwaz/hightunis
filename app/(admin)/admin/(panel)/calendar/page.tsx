@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, X, Trash2, User, Mail, Phone } from "lucide-react";
 import DatePicker from "@/app/components/DatePicker";
+import { StatusChip, allowedStatusOptions } from "../../components/StatusChip";
 
 interface Booking {
   id: string;
@@ -15,6 +16,15 @@ interface Booking {
   guest_name?: string | null;
   guest_email?: string | null;
   guest_phone?: string | null;
+}
+
+/** The inquiry behind a booking, for the status control. */
+interface LinkedInquiry {
+  id: string;
+  name: string;
+  status: string;
+  check_in: string | null;
+  check_out: string | null;
 }
 
 interface PropertyOption {
@@ -45,6 +55,9 @@ export default function AdminCalendar() {
   const [viewDate, setViewDate] = useState(() => new Date());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [properties, setProperties] = useState<PropertyOption[]>([]);
+  // Keyed by inquiry id. Only bookings created from an inquiry have one.
+  const [inquiries, setInquiries] = useState<Record<string, LinkedInquiry>>({});
+  const [statusBusy, setStatusBusy] = useState<string | null>(null);
   const [filterPropertyId, setFilterPropertyId] = useState("");
   const [loading, setLoading] = useState(true);
   const [migrationMissing, setMigrationMissing] = useState(false);
@@ -68,12 +81,45 @@ export default function AdminCalendar() {
     return map;
   }, [properties]);
 
+  /**
+   * Status changes go through the same PUT as the inquiries list, so the
+   * transition table, the clash guard and the audit log all still apply.
+   * Cancelling deletes the block under the cursor, hence the refetch.
+   */
+  const changeStatus = async (inquiryId: string, status: string) => {
+    setStatusBusy(inquiryId);
+    setFormError("");
+
+    const res = await fetch(`/api/admin/inquiries?id=${inquiryId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    }).catch(() => null);
+
+    const body = await res?.json().catch(() => null);
+    if (!res?.ok) {
+      setFormError(body?.error ?? "Could not change the status.");
+    } else if (Array.isArray(body?.warnings) && body.warnings.length > 0) {
+      setFormError(body.warnings.join(" "));
+    }
+
+    setStatusBusy(null);
+    // The block may have just been released, so close the modal and reload.
+    setModalOpen(false);
+    await fetchAll();
+  };
+
   const fetchAll = async () => {
     try {
-      const [bookingsRes, propsRes] = await Promise.all([
+      const [bookingsRes, propsRes, inqRes] = await Promise.all([
         fetch("/api/admin/bookings?orderColumn=start_date&ascending=true"),
         fetch("/api/admin/properties?orderColumn=order&ascending=true"),
+        fetch("/api/admin/inquiries"),
       ]);
+      if (inqRes.ok) {
+        const list: LinkedInquiry[] = await inqRes.json();
+        setInquiries(Object.fromEntries(list.map((i) => [i.id, i])));
+      }
       if (bookingsRes.status === 401 || propsRes.status === 401) {
         window.location.href = "/admin/login";
         return;
@@ -389,9 +435,33 @@ export default function AdminCalendar() {
               <button onClick={() => setModalOpen(false)} className="text-black/40 hover:text-black"><X size={20} /></button>
             </div>
             <div className="px-8 py-6 flex flex-col gap-6">
-              {editing?.source === "inquiry" && (
-                <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/60 bg-white px-4 py-3">
-                  Created from an inquiry — if you edit that inquiry later, it overwrites these dates.
+              {editing?.source === "inquiry" && editing.inquiry_id && inquiries[editing.inquiry_id] && (
+                <div className="border-2 border-black p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[3px] text-black/50">
+                      Inquiry status
+                    </span>
+                    <StatusChip status={inquiries[editing.inquiry_id].status} />
+                  </div>
+                  <select
+                    value={inquiries[editing.inquiry_id].status}
+                    disabled={statusBusy === editing.inquiry_id}
+                    onChange={(e) => changeStatus(editing.inquiry_id!, e.target.value)}
+                    className="w-full border-2 border-black/20 px-4 py-3 text-sm font-semibold bg-white outline-none focus:border-black disabled:opacity-40"
+                  >
+                    {allowedStatusOptions(inquiries[editing.inquiry_id].status).map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/40 leading-[1.6]">
+                    Cancelling releases these dates and removes this block. Editing the
+                    inquiry itself overwrites the dates shown below.
+                  </p>
+                </div>
+              )}
+              {editing?.source === "inquiry" && (!editing.inquiry_id || !inquiries[editing.inquiry_id]) && (
+                <p className="text-[10px] font-bold uppercase tracking-[2px] text-black/60 px-4 py-3 border border-black/20">
+                  Created from an inquiry that no longer exists. Editing here changes the dates only.
                 </p>
               )}
               <div>
