@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { CONTACT_CONSENT_TEXT } from "@/lib/consent";
 import DatePicker from "@/app/components/DatePicker";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -34,6 +36,7 @@ export default function BookingForm({
   const [message, setMessage] = useState("");
   // Honeypot. Hidden from people, filled in by most bots.
   const [company, setCompany] = useState("");
+  const [consent, setConsent] = useState(false);
   const [checkIn, setCheckIn] = useState<Date | null>(null);
   const [checkOut, setCheckOut] = useState<Date | null>(null);
   const [blocked, setBlocked] = useState<BlockedRange[]>([]);
@@ -82,6 +85,7 @@ export default function BookingForm({
     if (!PHONE_RE.test(phone.trim()) || digits.length < 8 || digits.length > 15) {
       next.phone = "Please enter a valid phone number";
     }
+    if (!consent) next.consent = "Please confirm you are happy for us to contact you";
     if (!checkIn) next.checkIn = "Select a check-in date";
     if (!checkOut) next.checkOut = "Select a check-out date";
     if (checkIn && checkOut && checkOut <= checkIn) {
@@ -114,6 +118,7 @@ export default function BookingForm({
         checkIn: checkIn ? toISODate(checkIn) : "",
         checkOut: checkOut ? toISODate(checkOut) : "",
         message: message.trim(),
+        consent,
         company,
       }),
     }).catch(() => null);
@@ -222,6 +227,27 @@ export default function BookingForm({
         </div>
       </div>
 
+      <div className="flex flex-col mb-6">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            id="booking-consent"
+            type="checkbox"
+            checked={consent}
+            onChange={(e) => { setConsent(e.target.checked); setErrors((p) => ({ ...p, consent: "" })); }}
+            className="mt-0.5 w-4 h-4 shrink-0 accent-black cursor-pointer"
+          />
+          <span className="text-[10px] font-bold uppercase tracking-[1.5px] leading-[1.7] text-black/60">
+            {CONTACT_CONSENT_TEXT.replace(" and I have read the Privacy Policy.", "")}{" "}
+            and I have read the{" "}
+            <Link href="/privacy" target="_blank" className="border-b border-black text-black hover:opacity-50 transition-opacity">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
+        {errors.consent && <p className={errorClass}>{errors.consent}</p>}
+      </div>
+
       {/* Honeypot: off-screen, not announced, never focusable. */}
       <div aria-hidden="true" className="absolute left-[-9999px] top-auto w-px h-px overflow-hidden">
         <label htmlFor="booking-company">Company</label>
@@ -240,7 +266,7 @@ export default function BookingForm({
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !consent}
         className="w-full bg-black text-white text-[10px] font-bold uppercase tracking-[3px] py-6 hover:bg-black/80 transition-colors disabled:opacity-40"
       >
         {submitting ? "Sending..." : "Request Booking"}

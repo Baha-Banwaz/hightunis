@@ -88,6 +88,11 @@ export const contactInquirySchema = z.object({
   email,
   type: requiredText(120, "Subject"),
   message: requiredText(5000, "Message"),
+  // Must be literally true. An unticked box is a validation failure with a
+  // readable message, not a silently stored false.
+  consent: z.literal(true, {
+    error: "Please confirm you are happy for us to contact you about this enquiry",
+  }),
   company: honeypot,
 });
 
@@ -100,6 +105,11 @@ export const bookingInquirySchema = z.object({
   checkIn: isoDate,
   checkOut: isoDate,
   message: text(2000).optional(),
+  // Must be literally true. An unticked box is a validation failure with a
+  // readable message, not a silently stored false.
+  consent: z.literal(true, {
+    error: "Please confirm you are happy for us to contact you about this enquiry",
+  }),
   company: honeypot,
 });
 

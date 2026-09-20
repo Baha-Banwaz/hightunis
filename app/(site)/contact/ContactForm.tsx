@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { CONTACT_CONSENT_TEXT } from "@/lib/consent";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -11,6 +13,7 @@ export default function ContactForm() {
   });
   // Honeypot. Hidden from people, filled in by most bots.
   const [company, setCompany] = useState("");
+  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -25,7 +28,7 @@ export default function ContactForm() {
     const res = await fetch("/api/inquiries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "contact", ...formData, company }),
+      body: JSON.stringify({ kind: "contact", ...formData, consent, company }),
     }).catch(() => null);
 
     setLoading(false);
@@ -33,6 +36,7 @@ export default function ContactForm() {
     if (res?.ok) {
       setSuccess(true);
       setFormData({ name: "", email: "", type: "", message: "" });
+      setConsent(false);
       setTimeout(() => setSuccess(false), 5000);
       return;
     }
@@ -97,6 +101,28 @@ export default function ContactForm() {
         ></textarea>
       </div>
 
+
+      {/* Unticked by default. Required: replying to you is the service. */}
+      <div className="flex flex-col">
+        <label className="flex items-start gap-4 cursor-pointer group">
+          <input
+            id="contact-consent"
+            type="checkbox"
+            checked={consent}
+            onChange={(e) => { setConsent(e.target.checked); setError(""); }}
+            className="mt-1 w-5 h-5 shrink-0 accent-black cursor-pointer"
+          />
+          <span className="text-xs font-bold uppercase tracking-[2px] leading-[1.8] text-black/70 group-hover:text-black transition-colors">
+            {CONTACT_CONSENT_TEXT.replace(" and I have read the Privacy Policy.", "")}{" "}
+            and I have read the{" "}
+            <Link href="/privacy" target="_blank" className="border-b border-black text-black hover:opacity-50 transition-opacity">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
+      </div>
+
       {/* Honeypot: off-screen, not announced, never focusable. */}
       <div aria-hidden="true" className="absolute left-[-9999px] top-auto w-px h-px overflow-hidden">
         <label htmlFor="company">Company</label>
@@ -116,7 +142,7 @@ export default function ContactForm() {
       )}
 
       <button
-        disabled={loading}
+        disabled={loading || !consent}
         type="submit"
         className="disabled:opacity-50 self-start w-full md:w-auto bg-black text-white px-16 py-8 text-sm font-bold uppercase tracking-[3px] hover:bg-black/80 transition-colors mt-8"
       >

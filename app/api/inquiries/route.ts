@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { formatZodError, publicInquirySchema } from "@/lib/validation";
+import { consentRecord } from "@/lib/consent";
 
 // Public write path for the contact form and the booking form.
 //
@@ -55,6 +56,9 @@ export async function POST(req: Request) {
       type: input.type,
       message: input.message,
       status: "new",
+      // Recorded server-side from a shared constant, so the stored wording is
+      // provably the wording that was displayed.
+      ...consentRecord(),
     };
   } else {
     if (input.checkOut <= input.checkIn) {
@@ -113,6 +117,7 @@ export async function POST(req: Request) {
       check_in: input.checkIn,
       check_out: input.checkOut,
       status: "new",
+      ...consentRecord(),
     };
   }
 
