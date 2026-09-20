@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { StatusChip, MetaChip, allowedStatusOptions } from "../../components/StatusChip";
+import { isMissingAmount, isOverdue } from "@/lib/inquiry-status";
 import { Inbox, Mail, Clock, Phone, CalendarDays, Pencil, X, Trash2 } from "lucide-react";
 import DatePicker from "@/app/components/DatePicker";
 
@@ -16,6 +17,10 @@ interface Inquiry {
   phone?: string | null;
   check_in?: string | null;
   check_out?: string | null;
+  confirmed_at?: string | null;
+  cancelled_at?: string | null;
+  amount_cents?: number | null;
+  currency?: string | null;
   created_at: string;
 }
 
@@ -46,6 +51,9 @@ export default function AdminInquiries() {
   const [formError, setFormError] = useState("");
   // Surfaces failures from the inline status dropdown, which has no modal.
   const [listError, setListError] = useState("");
+  // Warnings come back on a 200 - the save worked, but something needs
+  // attention. Kept apart from errors so the styling can differ.
+  const [listWarnings, setListWarnings] = useState<string[]>([]);
 
   // Edit form state
   const [fName, setFName] = useState("");
@@ -86,17 +94,23 @@ export default function AdminInquiries() {
 
   const updateStatus = async (id: string, status: string) => {
     setListError("");
+    setListWarnings([]);
     const res = await fetch(`/api/admin/inquiries?id=${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     }).catch(() => null);
 
+    const body = await res?.json().catch(() => null);
+
     if (!res?.ok) {
-      const body = await res?.json().catch(() => null);
       // The inquiry may well have saved and only the calendar sync failed;
       // the message from the API says which.
       setListError(body?.error ?? "Could not update this inquiry. Please try again.");
+    }
+    // A 409 can carry warnings too - show both rather than only the blocker.
+    if (Array.isArray(body?.warnings) && body.warnings.length > 0) {
+      setListWarnings(body.warnings);
     }
 
     fetch_();
@@ -126,7 +140,7 @@ export default function AdminInquiries() {
       return;
     }
     if (fStatus === "booked" && (!fPropertyId || !fCheckIn || !fCheckOut)) {
-      setFormError("A booked inquiry needs a property, check-in and check-out — otherwise it can't block the calendar");
+      setFormError("A booked inquiry needs a property, check-in and check-out, otherwise it cannot block the calendar");
       return;
     }
     setSaving(true);
@@ -146,12 +160,17 @@ export default function AdminInquiries() {
       }),
     });
     setSaving(false);
+    const body = await res.json().catch(() => null);
+
+    if (Array.isArray(body?.warnings) && body.warnings.length > 0) {
+      setListWarnings(body.warnings);
+    }
+
     if (res.ok) {
       setEditing(null);
       fetch_();
     } else {
-      const err = await res.json().catch(() => ({}));
-      setFormError(err?.error ?? "Could not save changes");
+      setFormError(body?.error ?? "Could not save changes");
     }
   };
 
@@ -194,6 +213,25 @@ export default function AdminInquiries() {
         </div>
       )}
 
+      {listWarnings.length > 0 && (
+        <div className="mb-6 border-2 border-black border-l-8 border-l-accent bg-white p-4 flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            {listWarnings.map((w, i) => (
+              <p key={i} className="text-xs font-bold uppercase tracking-[2px] text-black leading-[1.6]">
+                {w}
+              </p>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setListWarnings([])}
+            className="text-[10px] font-bold uppercase tracking-[2px] text-black/40 hover:text-black shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-sm font-bold uppercase tracking-widest text-black/30 animate-pulse">Loading...</div>
       ) : items.length === 0 ? (
@@ -212,6 +250,17 @@ export default function AdminInquiries() {
                     <StatusChip status={inq.status} />
                     {propertyName(inq.property_id) && (
                       <MetaChip>{propertyName(inq.property_id)}</MetaChip>
+                    )}
+                    {/* Derived, not stored: correct even if the cron never runs. */}
+                    {isOverdue(inq) && (
+                      <MetaChip tone="warn" title="Checked out but still marked booked">
+                        Overdue
+                      </MetaChip>
+                    )}
+                    {isMissingAmount(inq) && (
+                      <MetaChip tone="warn" title="Confirmed with no amount - excluded from revenue">
+                        No amount
+                      </MetaChip>
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-xs text-black/40">

@@ -45,10 +45,12 @@ export function MetaChip({
   children,
   tone = "neutral",
   className = "",
+  title,
 }: {
   children: React.ReactNode;
   tone?: "neutral" | "warn";
   className?: string;
+  title?: string;
 }) {
   const style =
     tone === "warn"
@@ -57,6 +59,7 @@ export function MetaChip({
 
   return (
     <span
+      title={title}
       className={`inline-flex items-center gap-1 px-3 py-1 text-[10px] font-bold uppercase tracking-[2px] ${style} ${className}`}
     >
       {children}

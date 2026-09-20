@@ -66,9 +66,11 @@ export const ACTOR_AUTO_FINISH = "system:auto-finish";
 
 export interface InquiryFlagInput {
   status: string | null;
-  check_out: string | null;
-  confirmed_at: string | null;
-  amount_cents: number | null;
+  // Optional because the admin's row type marks these optional; a missing
+  // value and a null one mean the same thing here.
+  check_out?: string | null;
+  confirmed_at?: string | null;
+  amount_cents?: number | null;
 }
 
 /**
@@ -89,7 +91,7 @@ export function isOverdue(inquiry: InquiryFlagInput, today = new Date()): boolea
  * booked revenue - keeps showing the gap.
  */
 export function isMissingAmount(inquiry: InquiryFlagInput): boolean {
-  return inquiry.confirmed_at !== null && inquiry.amount_cents === null;
+  return Boolean(inquiry.confirmed_at) && (inquiry.amount_cents ?? null) === null;
 }
 
 export const MISSING_AMOUNT_WARNING =
