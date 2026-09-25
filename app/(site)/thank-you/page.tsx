@@ -24,7 +24,7 @@ export default function ThankYouPage() {
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
         <Breadcrumbs trail={TRAIL} />
 
-        <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/40 mb-8">
+        <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-8">
           Request received
         </p>
         <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-none border-b-2 border-black pb-8 mb-12">
@@ -39,7 +39,7 @@ export default function ThankYouPage() {
 
           {/* The single next step, stated plainly. */}
           <div className="border-2 border-black p-8 md:p-10 mb-14">
-            <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-4">
               What happens next
             </h2>
             <p className="text-lg md:text-xl font-medium leading-[1.6] mb-6">
@@ -50,7 +50,7 @@ export default function ThankYouPage() {
                 publicly, for example "within one working day". Deliberately
                 omitted rather than guessed: a promise here is one a guest will
                 hold you to. */}
-            <p className="text-sm font-bold uppercase tracking-[2px] text-black/50">
+            <p className="text-sm font-bold uppercase tracking-[2px] text-black/60">
               If it is urgent, write directly to{" "}
               <a
                 href={`mailto:${SITE_CONFIG.emails.concierge}`}
@@ -61,7 +61,7 @@ export default function ThankYouPage() {
             </p>
           </div>
 
-          <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-6">
+          <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-6">
             While you wait
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-black/20 border-2 border-black">

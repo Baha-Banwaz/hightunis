@@ -17,7 +17,7 @@ export function ContentTodo({ children }: { children: ReactNode }) {
 
   return (
     <p className="border-2 border-dashed border-black bg-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] leading-[1.8]">
-      <span className="block text-black/40 mb-1">TODO_CONTENT_NEEDED</span>
+      <span className="block text-black/60 mb-1">TODO_CONTENT_NEEDED</span>
       {children}
     </p>
   );

@@ -72,7 +72,7 @@ export default async function BlogPage() {
                     </div>
                   )}
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-[3px] text-black/40 mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-3">
                   {formatDate(post.published_at ?? post.created_at)}
                 </span>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase group-hover:text-black/50 transition-colors mb-4">

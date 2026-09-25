@@ -112,7 +112,7 @@ export default async function ListingDetail({
         {/* Hero Title */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 border-b-2 border-black pb-8">
           <div>
-            <span className="text-xs font-bold uppercase tracking-[3px] text-black/50 mb-4 block">
+            <span className="text-xs font-bold uppercase tracking-[3px] text-black/60 mb-4 block">
               {property.location}
             </span>
             <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-none">
@@ -132,7 +132,7 @@ export default async function ListingDetail({
 
           {/* Main Content */}
           <div className="lg:col-span-8">
-            <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-8 border-b border-black/20 pb-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-8 border-b border-black/20 pb-4">
               The Architecture
             </h2>
             <p className="text-2xl md:text-4xl font-medium leading-[1.3] tracking-tight mb-24">
@@ -152,7 +152,7 @@ export default async function ListingDetail({
               does.
             </p>
 
-            <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-8 border-b border-black/20 pb-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-8 border-b border-black/20 pb-4">
               Amenities
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-12">

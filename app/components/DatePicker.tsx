@@ -104,7 +104,7 @@ export default function DatePicker({
         aria-expanded={open}
         aria-describedby={describedBy}
         className={`text-left bg-transparent font-bold uppercase tracking-widest text-sm ${
-          value ? "text-black" : "text-black/50"
+          value ? "text-black" : "text-black/60"
         }`}
       >
         {value ? formatDate(value) : "Select date"}

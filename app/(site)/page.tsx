@@ -3,6 +3,11 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logQueryError } from "@/lib/query-log";
+// Imported directly, not through next/dynamic. framer-motion is already in a
+// chunk of its own with this component, and on other routes that chunk is only
+// ever fetched as a low-priority prefetch of this route, well after their own
+// render. Deferring it here measured no gain and put a chunk hop in front of
+// the one page that needs it immediately.
 import HomeHero from "./HomeHero";
 import type { Metadata } from "next";
 import { OG_DEFAULTS } from "@/lib/og";
@@ -86,7 +91,7 @@ export default async function Home() {
                   <div className="flex flex-col gap-1">
                     <h3 className="text-2xl font-black tracking-tighter text-black uppercase group-hover:text-black/50 transition-colors duration-300">{property.name}</h3>
                     <div className="flex justify-between items-center mt-2">
-                      <span className="text-[10px] font-bold uppercase tracking-[2px] text-black/40">{property.location}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[2px] text-black/60">{property.location}</span>
                       <span className="text-sm font-bold text-black tracking-tight">{property.price}</span>
                     </div>
                   </div>
@@ -99,7 +104,7 @@ export default async function Home() {
         {/* Mobile-only: Discover More CTA */}
         <div className="md:hidden flex flex-col items-center mt-16 pt-10 border-t border-black/10">
           {hiddenOnMobile > 0 && (
-            <p className="text-xs font-bold uppercase tracking-[3px] text-black/40 mb-6">
+            <p className="text-xs font-bold uppercase tracking-[3px] text-black/60 mb-6">
               {hiddenOnMobile} more exclusive {hiddenOnMobile === 1 ? "estate" : "estates"}
             </p>
           )}

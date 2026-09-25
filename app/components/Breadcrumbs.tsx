@@ -14,7 +14,7 @@ export interface Crumb {
 }
 
 export function Breadcrumbs({ trail, tone = "dark" }: { trail: Crumb[]; tone?: "dark" | "light" }) {
-  const muted = tone === "light" ? "text-white/50" : "text-black/40";
+  const muted = tone === "light" ? "text-white/50" : "text-black/60";
   const active = tone === "light" ? "text-white" : "text-black";
 
   return (

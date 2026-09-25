@@ -151,7 +151,7 @@ export default function BookingForm({
   };
 
   const fieldClass =
-    "bg-transparent border-none font-bold uppercase tracking-widest text-sm placeholder:text-black/50 w-full";
+    "bg-transparent border-none font-bold uppercase tracking-widest text-sm placeholder:text-black/60 w-full";
   // red-700, not red-500: at 9px this has to clear 4.5:1 on white.
   const errorClass = "text-red-700 text-[10px] font-bold uppercase tracking-[2px] mt-2";
 

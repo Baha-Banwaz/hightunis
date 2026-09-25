@@ -108,7 +108,7 @@ export default async function BlogPostPage({
 
         {/* Title */}
         <div className="mb-16 border-b-2 border-black pb-8">
-          <span className="text-xs font-bold uppercase tracking-[3px] text-black/50 mb-4 block">
+          <span className="text-xs font-bold uppercase tracking-[3px] text-black/60 mb-4 block">
             {formatDate(post.published_at ?? post.created_at)}
           </span>
           <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none">

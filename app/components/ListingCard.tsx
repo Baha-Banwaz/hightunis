@@ -29,7 +29,12 @@ export default function ListingCard({
           src={imageUrl}
           alt={title}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          // The grid is one column below md and two columns at every width
+          // above it, inside a 1600px container, so a card never exceeds
+          // ~780px. The old value claimed 33vw above 1200px, which described a
+          // three-column layout that does not exist and had the browser pick
+          // an image too small for the slot.
+          sizes="(max-width: 768px) 100vw, (max-width: 1600px) 50vw, 780px"
           priority={priority}
           className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
         />

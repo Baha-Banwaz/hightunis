@@ -20,7 +20,7 @@ export default function NotFound() {
   return (
     <div className="bg-white text-black min-h-screen flex flex-col">
       <div className="flex-grow max-w-[1600px] w-full mx-auto px-6 lg:px-12 pt-32 pb-24">
-        <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/40 mb-8">Error 404</p>
+        <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-8">Error 404</p>
         <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-none border-b-2 border-black pb-8 mb-10">
           Not Found
         </h1>
