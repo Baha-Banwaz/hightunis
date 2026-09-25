@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,6 +14,8 @@ import {
   CalendarDays,
   LogOut,
   ArrowLeft,
+  Menu,
+  X,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -28,6 +31,28 @@ const NAV_ITEMS = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  // Below lg the sidebar is an off-canvas drawer. At lg and up it is always
+  // open and this state is ignored.
+  const [open, setOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  // Navigating on a phone should close the drawer, otherwise the page loads
+  // underneath a panel still covering it.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const handleLogout = async () => {
     await fetch("/api/admin/login", { method: "DELETE" });
@@ -35,59 +60,109 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r-2 border-black flex flex-col fixed left-0 top-0 z-50">
-      {/* Brand */}
-      <div className="px-6 py-8 border-b-2 border-black">
-        <h1 className="text-xl font-black tracking-tighter uppercase text-black">
+    <>
+      {/* Mobile bar. The panel layout leaves room for it with pt-16 lg:pt-0. */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-white border-b-2 border-black flex items-center justify-between px-4">
+        <Link href="/admin" className="text-lg font-black tracking-tighter uppercase text-black">
           HIGHTUNIS
-        </h1>
-        <p className="text-[9px] font-bold uppercase tracking-[3px] text-black/40 mt-1">
-          Content Manager
-        </p>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 py-6 px-3 flex flex-col gap-1">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(item.href);
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 ${
-                isActive
-                  ? "bg-black text-white"
-                  : "text-black/60 hover:bg-black/5 hover:text-black"
-              }`}
-            >
-              <item.icon size={18} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="px-3 pb-6 flex flex-col gap-1">
-        <Link
-          href="/"
-          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-black/40 hover:bg-black/5 hover:text-black transition-all duration-200"
-        >
-          <ArrowLeft size={18} />
-          Back to Site
         </Link>
         <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-500/60 hover:bg-red-50 hover:text-red-600 transition-all duration-200 w-full text-left"
+          ref={toggleRef}
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          aria-controls="admin-sidebar"
+          aria-label={open ? "Close the admin menu" : "Open the admin menu"}
+          className="w-11 h-11 flex items-center justify-center border-2 border-black"
         >
-          <LogOut size={18} />
-          Log Out
+          {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
-    </aside>
+
+      {/* Backdrop, mobile only. Tapping it closes the drawer. */}
+      {open && (
+        <button
+          type="button"
+          aria-label="Close the admin menu"
+          onClick={() => setOpen(false)}
+          className="lg:hidden fixed inset-0 z-50 bg-black/50"
+        />
+      )}
+
+      <aside
+        id="admin-sidebar"
+        className={`w-64 h-dvh bg-white border-r-2 border-black flex flex-col fixed left-0 top-0 z-50 overflow-y-auto transition-transform duration-200 lg:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Brand */}
+        <div className="px-6 py-8 border-b-2 border-black flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-black tracking-tighter uppercase text-black">
+              HIGHTUNIS
+            </h1>
+            <p className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 mt-1">
+              Content Manager
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              toggleRef.current?.focus();
+            }}
+            aria-label="Close the admin menu"
+            className="lg:hidden w-9 h-9 flex items-center justify-center border-2 border-black shrink-0"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav aria-label="Admin" className="flex-1 py-6 px-3 flex flex-col gap-1">
+          {NAV_ITEMS.map((item) => {
+            const isActive =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname.startsWith(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                  isActive
+                    ? "bg-black text-white"
+                    : "text-black/70 hover:bg-black/5 hover:text-black"
+                }`}
+              >
+                <item.icon size={18} aria-hidden="true" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div className="px-3 pb-6 flex flex-col gap-1">
+          <Link
+            href="/"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-black/70 hover:bg-black/5 hover:text-black transition-all duration-200"
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+            Back to Site
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-50 transition-all duration-200 w-full text-left"
+          >
+            <LogOut size={18} aria-hidden="true" />
+            Log Out
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
