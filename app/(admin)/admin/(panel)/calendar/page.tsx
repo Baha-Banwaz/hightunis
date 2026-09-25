@@ -605,8 +605,9 @@ export default function AdminCalendar() {
                 </select>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <DatePicker label="First blocked night" value={fStart} onChange={(d) => { setFStart(d); if (fEnd && fEnd <= d) setFEnd(null); }} />
+                <DatePicker id="booking-first-night" label="First blocked night" value={fStart} onChange={(d) => { setFStart(d); if (fEnd && fEnd <= d) setFEnd(null); }} />
                 <DatePicker
+                  id="booking-free-from"
                   label="Free again from"
                   value={fEnd}
                   onChange={setFEnd}

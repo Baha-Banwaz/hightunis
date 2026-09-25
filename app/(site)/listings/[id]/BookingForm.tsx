@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CONTACT_CONSENT_TEXT } from "@/lib/consent";
 import DatePicker from "@/app/components/DatePicker";
 
@@ -30,6 +31,7 @@ export default function BookingForm({
   propertyId: string;
   propertyName: string;
 }) {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -42,7 +44,7 @@ export default function BookingForm({
   const [blocked, setBlocked] = useState<BlockedRange[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const submitErrorRef = useRef<HTMLParagraphElement>(null);
 
   // Live availability: fetched on mount so it is never stale ISR data.
   // Served by /api/availability, which reads property_bookings with the
@@ -95,12 +97,23 @@ export default function BookingForm({
       next.checkOut = "Those dates include unavailable nights";
     }
     setErrors(next);
-    return Object.keys(next).length === 0;
+    return next;
   };
+
+  // Same order as the fields on screen, so focus lands on the first visible
+  // problem rather than whichever key the object happens to yield first.
+  const FIELD_ORDER = ["name", "email", "phone", "checkIn", "checkOut", "consent"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+
+    const found = validate();
+    if (Object.keys(found).length > 0) {
+      const first = FIELD_ORDER.find((f) => found[f]);
+      if (first) document.getElementById(`booking-${first}`)?.focus();
+      return;
+    }
+
     setSubmitting(true);
 
     // Posted to our own route. It re-runs this validation with zod, checks
@@ -123,76 +136,92 @@ export default function BookingForm({
       }),
     }).catch(() => null);
 
-    setSubmitting(false);
-
     if (res?.ok) {
-      setSuccess(true);
+      // The confirmation lives on its own page: it survives a refresh, can be
+      // linked to, and has room to say what happens next. The property name is
+      // not put in the URL - it would be guest data in a shareable link.
+      router.push("/thank-you");
       return;
     }
 
+    setSubmitting(false);
     const body = await res?.json().catch(() => null);
     setErrors({ submit: body?.error ?? "Something went wrong. Please try again." });
+    submitErrorRef.current?.focus();
   };
 
-  if (success) {
-    return (
-      <div className="sticky top-32 border-2 border-black p-12 bg-black text-white text-center">
-        <h3 className="text-3xl font-black uppercase tracking-tighter mb-4">Request Received</h3>
-        <p className="text-xs font-bold uppercase tracking-[2px] opacity-70 leading-[2]">
-          Our concierge will contact you shortly to confirm your stay at {propertyName}.
-        </p>
-      </div>
-    );
-  }
-
   const fieldClass =
-    "bg-transparent border-none outline-none font-bold uppercase tracking-widest text-sm placeholder:text-black/30 w-full";
-  const errorClass = "text-red-500 text-[9px] font-bold uppercase tracking-[2px] mt-2";
+    "bg-transparent border-none font-bold uppercase tracking-widest text-sm placeholder:text-black/50 w-full";
+  // red-700, not red-500: at 9px this has to clear 4.5:1 on white.
+  const errorClass = "text-red-700 text-[10px] font-bold uppercase tracking-[2px] mt-2";
 
   return (
-    <form onSubmit={handleSubmit} className="sticky top-32 border-2 border-black p-12 bg-white flex flex-col" noValidate>
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      aria-label={`Request a stay at ${propertyName}`}
+      className="sticky top-32 border-2 border-black p-12 bg-white flex flex-col"
+    >
       <h3 className="text-3xl font-black uppercase tracking-tighter mb-8 border-b-2 border-black pb-4">Reserve Space</h3>
 
       <div className="flex flex-col space-y-6 mb-10">
         <div className="flex flex-col border-b border-black pb-4">
-          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">Full Name</label>
+          <label htmlFor="booking-name" className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-2">Full Name</label>
           <input
+            id="booking-name"
+            name="name"
             type="text"
+            autoComplete="name"
             value={name}
             onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: "" })); }}
+            aria-invalid={Boolean(errors.name)}
+            aria-describedby={errors.name ? "booking-name-error" : undefined}
             placeholder="Your name"
             className={fieldClass}
           />
-          {errors.name && <p className={errorClass}>{errors.name}</p>}
+          {errors.name && <p id="booking-name-error" className={errorClass}>{errors.name}</p>}
         </div>
 
         <div className="flex flex-col border-b border-black pb-4">
-          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">Email</label>
+          <label htmlFor="booking-email" className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-2">Email</label>
           <input
+            id="booking-email"
+            name="email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "booking-email-error" : undefined}
             placeholder="name@email.com"
             className={fieldClass}
           />
-          {errors.email && <p className={errorClass}>{errors.email}</p>}
+          {errors.email && <p id="booking-email-error" className={errorClass}>{errors.email}</p>}
         </div>
 
         <div className="flex flex-col border-b border-black pb-4">
-          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">Phone</label>
+          <label htmlFor="booking-phone" className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-2">Phone</label>
           <input
+            id="booking-phone"
+            name="phone"
             type="tel"
+            autoComplete="tel"
             value={phone}
             onChange={(e) => { setPhone(e.target.value); setErrors((p) => ({ ...p, phone: "" })); }}
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={errors.phone ? "booking-phone-error" : undefined}
             placeholder="+216 12 345 678"
             className={fieldClass}
           />
-          {errors.phone && <p className={errorClass}>{errors.phone}</p>}
+          {errors.phone && <p id="booking-phone-error" className={errorClass}>{errors.phone}</p>}
         </div>
 
         <div className="flex flex-col">
           <DatePicker
+            id="booking-checkIn"
             label="Check-in"
+            invalid={Boolean(errors.checkIn)}
+            describedBy={errors.checkIn ? "booking-checkIn-error" : undefined}
             value={checkIn}
             onChange={(d) => {
               setCheckIn(d);
@@ -201,23 +230,28 @@ export default function BookingForm({
             }}
             isDateDisabled={isNightBlocked}
           />
-          {errors.checkIn && <p className={errorClass}>{errors.checkIn}</p>}
+          {errors.checkIn && <p id="booking-checkIn-error" className={errorClass}>{errors.checkIn}</p>}
         </div>
 
         <div className="flex flex-col">
           <DatePicker
+            id="booking-checkOut"
             label="Check-out"
+            invalid={Boolean(errors.checkOut)}
+            describedBy={errors.checkOut ? "booking-checkOut-error" : undefined}
             value={checkOut}
             onChange={(d) => { setCheckOut(d); setErrors((p) => ({ ...p, checkOut: "" })); }}
             minDate={checkIn ? new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate() + 1) : null}
             isDateDisabled={isNightBlocked}
           />
-          {errors.checkOut && <p className={errorClass}>{errors.checkOut}</p>}
+          {errors.checkOut && <p id="booking-checkOut-error" className={errorClass}>{errors.checkOut}</p>}
         </div>
 
         <div className="flex flex-col border-b border-black pb-4">
-          <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">Message (optional)</label>
+          <label htmlFor="booking-message" className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-2">Message (optional)</label>
           <textarea
+            id="booking-message"
+            name="message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Special requests, arrival time..."
@@ -228,15 +262,18 @@ export default function BookingForm({
       </div>
 
       <div className="flex flex-col mb-6">
-        <label className="flex items-start gap-3 cursor-pointer">
+        <label htmlFor="booking-consent" className="flex items-start gap-3 cursor-pointer">
           <input
             id="booking-consent"
+            name="consent"
             type="checkbox"
             checked={consent}
             onChange={(e) => { setConsent(e.target.checked); setErrors((p) => ({ ...p, consent: "" })); }}
+            aria-invalid={Boolean(errors.consent)}
+            aria-describedby={errors.consent ? "booking-consent-error" : undefined}
             className="mt-0.5 w-4 h-4 shrink-0 accent-black cursor-pointer"
           />
-          <span className="text-[10px] font-bold uppercase tracking-[1.5px] leading-[1.7] text-black/60">
+          <span className="text-[10px] font-bold uppercase tracking-[1.5px] leading-[1.7] text-black/70">
             {CONTACT_CONSENT_TEXT.replace(" and I have read the Privacy Policy.", "")}{" "}
             and I have read the{" "}
             <Link href="/privacy" target="_blank" className="border-b border-black text-black hover:opacity-50 transition-opacity">
@@ -245,7 +282,7 @@ export default function BookingForm({
             .
           </span>
         </label>
-        {errors.consent && <p className={errorClass}>{errors.consent}</p>}
+        {errors.consent && <p id="booking-consent-error" className={errorClass}>{errors.consent}</p>}
       </div>
 
       {/* Honeypot: off-screen, not announced, never focusable. */}
@@ -262,14 +299,20 @@ export default function BookingForm({
         />
       </div>
 
-      {errors.submit && <p className={`${errorClass} mb-4`}>{errors.submit}</p>}
+      {errors.submit && (
+        <p ref={submitErrorRef} tabIndex={-1} role="alert" className={`${errorClass} mb-4`}>
+          {errors.submit}
+        </p>
+      )}
 
+      {/* Not disabled when consent is unticked: a dead button explains nothing.
+          Submitting instead surfaces the reason next to the checkbox. */}
       <button
         type="submit"
-        disabled={submitting || !consent}
+        disabled={submitting}
         className="w-full bg-black text-white text-[10px] font-bold uppercase tracking-[3px] py-6 hover:bg-black/80 transition-colors disabled:opacity-40"
       >
-        {submitting ? "Sending..." : "Request Booking"}
+        {submitting ? "Sending your request" : "Request this stay"}
       </button>
     </form>
   );
