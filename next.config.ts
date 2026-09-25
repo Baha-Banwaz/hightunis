@@ -82,6 +82,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   images: {
+    // AVIF first, WebP as the fallback. Next's default is WebP only, so a
+    // browser that advertises AVIF was being handed the larger file. Encoding
+    // AVIF costs more server CPU on the first request for each size; the
+    // result is cached, so that is paid once.
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
