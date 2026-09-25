@@ -61,12 +61,15 @@ export default function Footer() {
 
         {/* GIANT FOOTER BRANDING */}
         <div className="w-full text-center flex items-center justify-center pt-12 pb-8">
-          <h1
+          {/* Decorative wordmark, deliberately not a heading: as an <h1> it gave
+                every page on the site a second one. aria-hidden because the
+                brand name is already announced by the navbar logo. */}
+            <div aria-hidden="true"
             style={{ fontFamily: "'Arial Black', Impact, sans-serif", letterSpacing: "-0.05em" }}
             className="text-[11vw] md:text-[12vw] font-black leading-none uppercase whitespace-nowrap text-white"
           >
-            HIGHTUNIS
-          </h1>
+              HIGHTUNIS
+            </div>
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center mt-12 text-[10px] font-bold uppercase tracking-[2px] text-white/50">

@@ -36,15 +36,11 @@ export default async function AboutPage() {
         {/* Giant Intro */}
         <div className="flex flex-col mb-32 border-b-2 border-white pb-16">
           <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/50 mb-12 block">The Brand</span>
-          <h1 className="text-[10vw] font-black uppercase tracking-tighter leading-[0.85] w-full">
-            ELEVATING
-          </h1>
-          <h1 className="text-[10vw] font-black uppercase tracking-tighter leading-[0.85] w-full ml-auto text-right">
-             TUNISIAN
-          </h1>
-          <h1 className="text-[10vw] font-black uppercase tracking-tighter leading-[0.85] w-full text-center">
-             LUXURY
-          </h1>
+          <h1 className="text-[10vw] font-black uppercase tracking-tighter leading-[0.85]">
+              <span className="block w-full">Elevating</span>
+              <span className="block w-full text-right">Tunisian</span>
+              <span className="block w-full text-center">Luxury</span>
+            </h1>
         </div>
 
         {/* Story Section */}
