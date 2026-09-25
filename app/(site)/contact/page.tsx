@@ -5,7 +5,8 @@ import ContactForm from "./ContactForm";
 export const metadata: Metadata = {
   title: "Inquire",
   description:
-    "Contact the HighTunis concierge for private bookings, partnerships, and press inquiries.",
+    
+    "Reach the HighTunis concierge for private bookings, or the agency team for partnerships and press. Send a request and we will reply to arrange the details.",
 };
 
 const CONTACT_METHODS = [

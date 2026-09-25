@@ -8,7 +8,8 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "The Collection",
   description:
-    "Tunisia's finest villas, hotels, yachts and restaurants — curated by HighTunis.",
+    
+    "Browse the HighTunis collection: cliffside villas in Sidi Bou Said, a restored palace in the Tunis Medina, a yacht at Port El Kantaoui and coastal hotels.",
 };
 
 export default async function ListingsPage() {

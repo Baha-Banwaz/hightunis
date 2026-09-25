@@ -6,7 +6,8 @@ import { SITE_CONFIG } from "@/lib/site-config";
 export const metadata: Metadata = {
   title: "Terms and Conditions",
   description:
-    "The terms that apply to using this website and sending an enquiry or booking request through it.",
+    
+    "The terms for using this site and sending a booking request. Submitting a request is not a confirmed booking, and no payment is ever taken on this website.",
   // Draft. Remove once a lawyer has reviewed it and the TODOs are filled.
   robots: "noindex, nofollow",
 };

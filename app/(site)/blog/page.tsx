@@ -10,7 +10,8 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Journal",
   description:
-    "Stories, guides and perspectives on Tunisia's luxury scene — the HighTunis journal.",
+    
+    "The HighTunis journal: guides to the Tunisian coast, notes on the estates we represent, and the places worth knowing about before you book a stay.",
 };
 
 function formatDate(value: string | null) {

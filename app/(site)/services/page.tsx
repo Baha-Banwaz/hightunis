@@ -9,7 +9,8 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Agency Services",
   description:
-    "Bespoke strategy and digital architecture for hospitality pioneers — the HighTunis agency division.",
+    
+    "The HighTunis agency division: digital curation, influencer placement and brand identity, built for Tunisia's hotels, restaurants and private estates.",
 };
 
 export default async function ServicesPage() {

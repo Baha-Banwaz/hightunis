@@ -5,7 +5,8 @@ import { LegalPage, List, Section, Todo } from "@/app/components/LegalPage";
 export const metadata: Metadata = {
   title: "Cookie Policy",
   description:
-    "This site sets no cookies when you browse it, and shows no cookie banner because it does not need one.",
+    
+    "This site sets no cookies when you browse it and shows no consent banner, because there is nothing to consent to. No analytics, no tracking, no third parties.",
   // Draft. Remove once a lawyer has reviewed it and the TODOs are filled.
   robots: "noindex, nofollow",
 };

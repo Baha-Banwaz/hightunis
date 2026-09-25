@@ -17,6 +17,7 @@ import { OG_DEFAULTS } from "@/lib/og";
 // openGraph must be repeated in full rather than partially overridden: Next
 // REPLACES the whole object when a segment defines one.
 export const metadata: Metadata = {
+  description: "HighTunis curates Tunisia's finest villas, boutique hotels, yachts and restaurants, from Sidi Bou Said to the Cap Bon coast. The concierge replies directly.",
   alternates: { canonical: "/" },
   openGraph: { ...OG_DEFAULTS, url: "/" },
 };

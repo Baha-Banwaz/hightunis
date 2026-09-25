@@ -8,7 +8,8 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "About",
   description:
-    "HighTunis curates Tunisia's finest residential estates, boutique hotels, and bespoke luxury services.",
+    
+    "Why HighTunis exists. Tunisia spent decades known for all-inclusive resorts while its finest estates stayed hidden. Founded 2024, based in Sidi Bou Said.",
 };
 
 export default async function AboutPage() {
