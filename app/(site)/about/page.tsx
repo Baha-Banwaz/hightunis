@@ -4,6 +4,7 @@ import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
 import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import { logQueryError } from "@/lib/query-log";
+import { SITE_CONFIG } from "@/lib/site-config";
 
 export const revalidate = 3600;
 
@@ -75,18 +76,18 @@ export default async function AboutPage() {
                  But hidden behind the whitewashed walls of Sidi Bou Said, deep within the palm groves of Tozeur, and anchored in the marinas of Bizerte, lies an entirely different world. A world of uncompromising exclusivity.
                </p>
                <p>
-                 HighTunis is the digital bridge to this world. We curate only the absolute finest residential estates, five-star boutique hotels, and bespoke luxury services available across the nation.
+                 HighTunis is the digital bridge to this world. We curate residential estates, boutique hotels and bespoke luxury services across the nation, and we visit what we represent.
                </p>
              </div>
              
              <div className="mt-24 border-t border-white/20 pt-16 flex justify-between items-end">
                <div>
-                 <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/50 mb-4 block">Founded</span>
-                 <p className="text-3xl font-black tracking-tighter uppercase">2024</p>
+                 <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/60 mb-4 block">Founded</span>
+                 <p className="text-3xl font-black tracking-tighter uppercase">{SITE_CONFIG.foundedYear}</p>
                </div>
                <div>
-                 <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/50 mb-4 block">Headquarters</span>
-                 <p className="text-3xl font-black tracking-tighter uppercase text-right">TUNIS</p>
+                 <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/60 mb-4 block">Headquarters</span>
+                 <p className="text-3xl font-black tracking-tighter uppercase text-right">{SITE_CONFIG.headquarters.line1}</p>
                </div>
              </div>
           </div>
