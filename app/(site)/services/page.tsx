@@ -29,12 +29,19 @@ export default async function ServicesPage() {
 
   const services = rawServices || [];
 
+  // TODO_CONTENT_NEEDED: photographs of the actual work, uploaded through the
+  // admin so each service carries its own image_url and none of this is used.
+  //
+  // These are stock photographs standing in for services we perform, hotlinked
+  // from Unsplash. Two of the five originally listed here had been deleted from
+  // Unsplash and were returning 404 in production, which is how this list was
+  // found: any hardcoded external URL can rot without warning, and nothing in
+  // the build would catch it. The two dead ones are removed; the remaining
+  // three cycle.
   const defaultImages = [
-    "https://images.unsplash.com/photo-1542314831-c6a4d27ce6a2?q=80&w=1200&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1505330622279-bf7d7fc918f4?q=80&w=1200&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1613490908653-b8e72769cdac?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop"
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200&auto=format&fit=crop",
   ];
 
   return (
