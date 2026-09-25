@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isHomePath } from "@/lib/routes";
@@ -10,6 +10,7 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   const isHomePage = isHomePath(pathname);
 
@@ -26,6 +27,20 @@ export default function Navbar() {
     const threshold = isHomePage ? window.innerHeight * 0.25 : 10;
     setIsScrolled(window.scrollY > threshold);
   }, [isHomePage]);
+
+  // Escape closes the menu and returns focus to the button that opened it,
+  // so a keyboard user is not stranded at the top of the document.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isMobileMenuOpen]);
 
   const navLinks = [
     { name: "Estates", href: "/listings" },
@@ -75,8 +90,13 @@ export default function Navbar() {
           {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center z-50">
             <button
+              ref={menuButtonRef}
+              type="button"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMobileMenuOpen ? "Close the navigation menu" : "Open the navigation menu"}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-[10px] font-bold uppercase tracking-[3px] focus:outline-none"
+              className="text-[10px] font-bold uppercase tracking-[3px]"
             >
               {isMobileMenuOpen ? "CLOSE" : "MENU"}
             </button>
@@ -92,6 +112,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "-100%" }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            id="mobile-menu"
             className="fixed inset-0 z-40 bg-white flex flex-col justify-center px-12"
           >
             <div className="flex flex-col space-y-8">

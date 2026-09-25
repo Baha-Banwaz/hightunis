@@ -33,5 +33,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // hightunis/ is an untracked, stale copy of this project that predates the
+  // current code. It is not built or deployed, but its files import "@/..."
+  // which resolves back into the real app, so type-checking it fails the build
+  // against components it was never updated for. Excluded until it is deleted.
+  "exclude": ["node_modules", "hightunis"]
 }
