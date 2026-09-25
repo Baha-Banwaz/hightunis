@@ -7,6 +7,8 @@ import HomeHero from "./HomeHero";
 import type { Metadata } from "next";
 import { OG_DEFAULTS } from "@/lib/og";
 import { JsonLd, localBusinessSchema } from "@/lib/structured-data";
+import { CaseStudies } from "@/app/components/CaseStudies";
+import { Faq } from "@/app/components/Faq";
 
 // The root layout uses alternates.canonical "./", which resolves against the
 // current route. That works everywhere except here: on Vercel the root page
@@ -139,6 +141,15 @@ export default async function Home() {
           />
         </div>
       </section>
+
+      {/*
+        Both render nothing on the live site until their content exists, and
+        show a TODO panel in development. Empty by design: see the notes in
+        each component. They sit here, after the work and before the footer,
+        because that is where someone deciding whether to enquire is.
+      */}
+      <CaseStudies />
+      <Faq />
 
     </div>
   );
