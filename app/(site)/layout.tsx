@@ -2,6 +2,7 @@ import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import PageTransition from "@/app/components/PageTransition";
 import SmoothScroll from "@/app/components/SmoothScroll";
+import StickyMobileCta from "@/app/components/StickyMobileCta";
 
 export default function SiteLayout({
   children,
@@ -25,6 +26,7 @@ export default function SiteLayout({
         </PageTransition>
       </main>
       <Footer />
+      <StickyMobileCta />
     </SmoothScroll>
   );
 }
