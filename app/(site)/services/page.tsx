@@ -86,9 +86,21 @@ export default async function ServicesPage() {
                   <p className="text-2xl md:text-3xl font-medium tracking-tight leading-[1.4] mb-12">
                     {service.description}
                   </p>
-                  <button className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[3px] border-b-2 border-black pb-2 hover:opacity-50 transition-opacity">
-                    Inquire Now <ArrowUpRight size={16} />
-                  </button>
+                  {/*
+                    Was a <button> with no handler, rendered once per service,
+                    so every block on this page had a dead CTA and the page had
+                    no working conversion path at all.
+
+                    The service name rides along in the query string and the
+                    contact form prefills the subject from it, so an enquiry
+                    says which service it is about instead of arriving blank.
+                  */}
+                  <Link
+                    href={`/contact?subject=${encodeURIComponent(service.title)}`}
+                    className="inline-flex items-center gap-4 text-[10px] font-bold uppercase tracking-[3px] border-b-2 border-black pb-2 hover:opacity-50 transition-opacity"
+                  >
+                    Inquire about {service.title} <ArrowUpRight size={16} aria-hidden="true" />
+                  </Link>
                 </div>
              </div>
              ))

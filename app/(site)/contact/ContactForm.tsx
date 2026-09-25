@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CONTACT_CONSENT_TEXT } from "@/lib/consent";
 
 type Field = "name" | "email" | "type" | "message" | "consent";
@@ -11,7 +11,22 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export default function ContactForm() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ name: "", email: "", type: "", message: "" });
+
+  // The services page links here as /contact?subject=<service name>, so an
+  // enquiry arrives saying which service it is about. Read once, as the
+  // initial value: after that the field belongs to whoever is typing in it,
+  // and re-syncing would fight them.
+  //
+  // This page is prerendered, so the component sits inside a Suspense
+  // boundary. Next client-renders the boundary, which is what lets this
+  // initialiser see the query string at all.
+  const searchParams = useSearchParams();
+  const [formData, setFormData] = useState(() => ({
+    name: "",
+    email: "",
+    type: (searchParams.get("subject") ?? "").slice(0, 120),
+    message: "",
+  }));
   // Honeypot. Hidden from people, filled in by most bots.
   const [company, setCompany] = useState("");
   const [consent, setConsent] = useState(false);

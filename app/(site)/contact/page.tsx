@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/app/components/Breadcrumbs";
 import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
@@ -134,7 +135,15 @@ export default function ContactPage() {
             <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-12">
               Direct Inquiry
             </h2>
-            <ContactForm />
+            {/*
+              ContactForm reads ?subject= to prefill the subject when someone
+              arrives from a service on /services. useSearchParams needs a
+              Suspense boundary on a prerendered page; without one this whole
+              route would be forced to render on every request.
+            */}
+            <Suspense fallback={<div className="min-h-[36rem]" aria-hidden="true" />}>
+              <ContactForm />
+            </Suspense>
           </div>
 
         </div>
