@@ -43,6 +43,18 @@ export default function GlobalError({
           >
             Try again
           </button>
+
+          {/*
+            Next assigns a digest to every server error and logs the stack under
+            it. Showing the digest is what makes a report actionable: it is the
+            one string that ties what a visitor saw to the entry in the Vercel
+            logs. It reveals nothing about the failure itself.
+          */}
+          {error.digest && (
+            <p style={{ marginTop: "2.5rem", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase", opacity: 0.4, fontWeight: 700 }}>
+              Reference {error.digest}
+            </p>
+          )}
         </div>
       </body>
     </html>

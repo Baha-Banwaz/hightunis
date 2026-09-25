@@ -23,21 +23,24 @@ const HIDDEN_ON = ["/contact", "/thank-you"];
 export default function StickyMobileCta() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
-  const [dismissed, setDismissed] = useState(true); // assume dismissed until we know
+  const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    // Per-viewer convenience only, so sessionStorage is right: dismissing it
-    // should last the visit, not forever. Private-mode browsers throw on
-    // access, so a failure here just means the bar behaves as if it is new.
+  // Per-viewer convenience only, so sessionStorage is right: dismissing it
+  // should last the visit, not forever. Private-mode browsers throw on access,
+  // so a failure here just means the bar behaves as if it were new.
+  const isDismissed = () => {
     try {
-      setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
+      return sessionStorage.getItem(DISMISS_KEY) === "1";
     } catch {
-      setDismissed(false);
+      return false;
     }
-  }, []);
+  };
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > SHOW_AFTER_PX);
+    // Read inside the handler rather than in an effect of its own: the bar is
+    // hidden at the top of the page regardless, so the first scroll is the
+    // earliest moment the stored answer can matter.
+    const onScroll = () => setVisible(window.scrollY > SHOW_AFTER_PX && !isDismissed());
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
