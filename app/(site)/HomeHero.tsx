@@ -40,10 +40,10 @@ export default function HomeHero() {
           {/* Layer 2: The Native Blend Mask Element */}
           <motion.div
             style={{ backgroundColor: bgWhiteValue }}
-            className="absolute inset-0 z-10 w-full px-6 flex flex-col items-center justify-center text-center mix-blend-screen pointer-events-none"
+            className="absolute inset-0 z-10 w-full px-4 md:px-6 flex flex-col items-center justify-center text-center mix-blend-screen pointer-events-none"
           >
             <motion.h1
-              className="text-[11vw] md:text-[12vw] leading-[0.8] uppercase whitespace-nowrap"
+              className="text-[13.5vw] md:text-[12vw] leading-[0.8] uppercase whitespace-nowrap"
               style={{ color: textBlackValue, fontFamily: "'Arial Black', Impact, sans-serif", letterSpacing: "-0.05em" }}
             >
               HIGHTUNIS

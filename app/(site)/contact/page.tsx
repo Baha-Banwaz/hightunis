@@ -24,10 +24,10 @@ export default function ContactPage() {
           INQUIRE
         </h1>
 
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-24">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
 
           {/* Contact Methods */}
-          <div className="flex flex-col border-r border-black/20 pr-0 lg:pr-24">
+          <div className="flex flex-col border-r border-black/20 pr-0 lg:pr-10">
             <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-12">
               Concierge Services
             </h2>
@@ -36,8 +36,12 @@ export default function ContactPage() {
               {CONTACT_METHODS.map(({ label, email }) => (
                 <div key={label}>
                   <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">{label}</p>
-                  <a href={`mailto:${email}`} className="text-3xl md:text-5xl font-black uppercase tracking-tighter hover:opacity-50 transition-opacity break-all">
-                    {email}
+                  <a
+                    href={`mailto:${email}`}
+                    className="block text-[clamp(1.05rem,5.2vw,1.75rem)] lg:text-[clamp(1.5rem,2.5vw,2.5rem)] font-black uppercase tracking-tighter hover:opacity-50 transition-opacity"
+                  >
+                    {email.split("@")[0]}@<wbr />
+                    {email.split("@")[1]}
                   </a>
                 </div>
               ))}
