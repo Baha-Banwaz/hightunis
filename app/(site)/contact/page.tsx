@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
+import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
 import { SITE_CONFIG } from "@/lib/site-config";
 import ContactForm from "./ContactForm";
 
@@ -15,12 +17,16 @@ const CONTACT_METHODS = [
   { label: "Press Inquiries", email: SITE_CONFIG.emails.press },
 ];
 
+const TRAIL = [{ name: "Home", href: "/" }, { name: "Inquire", href: "/contact" }];
+
 export default function ContactPage() {
   return (
     <div className="bg-white text-black min-h-screen pt-32 pb-24">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col items-center">
 
         {/* Massive Header */}
+        <JsonLd data={breadcrumbSchema(TRAIL)} />
+        <Breadcrumbs trail={TRAIL} tone="dark" />
         <h1 className="text-[12vw] font-black uppercase tracking-tighter leading-[0.85] text-center border-b-2 border-black pb-12 w-full mb-24">
           INQUIRE
         </h1>

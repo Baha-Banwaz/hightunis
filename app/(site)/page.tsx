@@ -6,6 +6,7 @@ import { logQueryError } from "@/lib/query-log";
 import HomeHero from "./HomeHero";
 import type { Metadata } from "next";
 import { OG_DEFAULTS } from "@/lib/og";
+import { JsonLd, localBusinessSchema } from "@/lib/structured-data";
 
 // The root layout uses alternates.canonical "./", which resolves against the
 // current route. That works everywhere except here: on Vercel the root page
@@ -40,6 +41,7 @@ export default async function Home() {
 
   return (
     <div className="bg-white min-h-screen">
+      <JsonLd data={localBusinessSchema()} />
 
       <HomeHero />
 
@@ -125,7 +127,12 @@ export default async function Home() {
         <div className="w-full md:w-1/2 relative h-[50vh] md:h-[70vh]">
           <Image
             src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1600&auto=format&fit=crop"
-            alt="Services"
+            /* TODO_CONTENT_NEEDED: describe what this photograph actually
+               shows. It is an Unsplash image used as a decorative backdrop for
+               the agency callout; its subject cannot be determined from the
+               filename or the surrounding copy. Empty alt until then, which is
+               correct for decoration and honest about the gap. */
+            alt=""
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover opacity-80"

@@ -1,4 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
+import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
 import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -12,6 +15,8 @@ export const metadata: Metadata = {
     
     "The HighTunis agency division: digital curation, influencer placement and brand identity, built for Tunisia's hotels, restaurants and private estates.",
 };
+
+const TRAIL = [{ name: "Home", href: "/" }, { name: "Agency", href: "/services" }];
 
 export default async function ServicesPage() {
   const { data: rawServices, error } = await supabase
@@ -36,11 +41,24 @@ export default async function ServicesPage() {
     <div className="bg-white min-h-screen pt-32 pb-24 text-black">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
         <div className="mb-24 border-b-2 border-black pb-8">
+        <JsonLd data={breadcrumbSchema(TRAIL)} />
+        <Breadcrumbs trail={TRAIL} tone="dark" />
            <h1 className="text-7xl md:text-[10vw] font-black uppercase tracking-tighter leading-none mb-4">
              Agency Div.
            </h1>
            <p className="text-xl md:text-3xl font-medium max-w-3xl tracking-tight">
              Bespoke strategy and digital architecture for hospitality pioneers.
+           </p>
+           <p className="text-base font-medium max-w-2xl tracking-tight text-black/60 mt-6">
+             The same standard applied to{" "}
+             <Link href="/listings" className="text-black border-b border-black hover:opacity-50 transition-opacity">
+               the properties we represent
+             </Link>
+             , and the reason{" "}
+             <Link href="/about" className="text-black border-b border-black hover:opacity-50 transition-opacity">
+               the company exists
+             </Link>
+             .
            </p>
         </div>
 

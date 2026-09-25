@@ -29,7 +29,7 @@ export default function HomeHero() {
           >
             <Image
               src="/hero.jpg"
-              alt="Luxury Architecture"
+              alt="Whitewashed houses with blue doors above the Gulf of Tunis at dusk, seen from Sidi Bou Said"
               fill
               sizes="100vw"
               className="object-cover opacity-90"

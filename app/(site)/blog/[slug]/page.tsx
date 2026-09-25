@@ -1,10 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
 import { cache } from "react";
 import type { Metadata } from "next";
-import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { OG_DEFAULTS } from "@/lib/og";
+import Link from "next/link";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
+import { JsonLd, articleSchema, breadcrumbSchema } from "@/lib/structured-data";
 import { logQueryError } from "@/lib/query-log";
 import { notFound } from "next/navigation";
 
@@ -89,10 +90,21 @@ export default async function BlogPostPage({
   return (
     <div className="bg-white min-h-screen pt-32 pb-24 text-black">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-        {/* Back Link */}
-        <Link href="/blog" className="inline-flex items-center gap-4 text-[10px] font-bold uppercase tracking-[3px] border-b border-black pb-1 mb-12 hover:opacity-50 transition-opacity">
-          <ArrowLeft size={16} /> Back to Journal
-        </Link>
+        <JsonLd data={articleSchema({ ...post, slug })} />
+        <JsonLd
+          data={breadcrumbSchema([
+            { name: "Home", href: "/" },
+            { name: "Journal", href: "/blog" },
+            { name: post.title, href: `/blog/${slug}` },
+          ])}
+        />
+        <Breadcrumbs
+          trail={[
+            { name: "Home", href: "/" },
+            { name: "Journal", href: "/blog" },
+            { name: post.title, href: `/blog/${slug}` },
+          ]}
+        />
 
         {/* Title */}
         <div className="mb-16 border-b-2 border-black pb-8">
@@ -132,6 +144,18 @@ export default async function BlogPostPage({
               </p>
             ))}
           </div>
+
+          <p className="mt-16 pt-8 border-t-2 border-black text-lg font-medium leading-[1.7] text-black/70">
+            The places written about here are the ones we represent. Browse{" "}
+            <Link href="/listings" className="text-black border-b border-black hover:opacity-50 transition-opacity">
+              the full collection
+            </Link>
+            , or{" "}
+            <Link href="/contact" className="text-black border-b border-black hover:opacity-50 transition-opacity">
+              ask the concierge
+            </Link>{" "}
+            what suits your dates.
+          </p>
         </div>
       </div>
     </div>

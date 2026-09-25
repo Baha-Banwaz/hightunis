@@ -80,7 +80,7 @@ export default function PropertyGallery({ images, name }: { images: string[]; na
           >
             <Image
               src={src}
-              alt={`${name} — photo ${i + 1}`}
+              alt={`${name}, photograph ${i + 1} of ${count}`}
               fill
               sizes="(max-width: 768px) 90vw, 70vw"
               className="object-cover pointer-events-none"

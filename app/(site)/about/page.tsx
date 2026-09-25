@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
+import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
 import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import { logQueryError } from "@/lib/query-log";
@@ -11,6 +13,8 @@ export const metadata: Metadata = {
     
     "Why HighTunis exists. Tunisia spent decades known for all-inclusive resorts while its finest estates stayed hidden. Founded 2024, based in Sidi Bou Said.",
 };
+
+const TRAIL = [{ name: "Home", href: "/" }, { name: "About", href: "/about" }];
 
 export default async function AboutPage() {
   const { data: teamData, error: teamError } = await supabase
@@ -36,6 +40,8 @@ export default async function AboutPage() {
         
         {/* Giant Intro */}
         <div className="flex flex-col mb-32 border-b-2 border-white pb-16">
+        <JsonLd data={breadcrumbSchema(TRAIL)} />
+        <Breadcrumbs trail={TRAIL} tone="light" />
           <span className="text-[10px] font-bold uppercase tracking-[3px] text-white/50 mb-12 block">The Brand</span>
           <h1 className="text-[10vw] font-black uppercase tracking-tighter leading-[0.85]">
               <span className="block w-full">Elevating</span>
@@ -50,7 +56,7 @@ export default async function AboutPage() {
           <div className="lg:col-span-5 relative h-[60vh] md:h-[90vh] bg-stone">
              <Image
               src="https://oqzfowaqxgwquzofwxfg.supabase.co/storage/v1/object/public/media/agency/agency-terrace.webp"
-              alt="HighTunis — palms and modern architecture at dusk"
+              alt="Palm trees against a modern terrace at dusk"
               fill
               sizes="(max-width: 1024px) 100vw, 42vw"
               className="object-cover"

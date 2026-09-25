@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
+import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
@@ -23,6 +25,8 @@ function formatDate(value: string | null) {
   });
 }
 
+const TRAIL = [{ name: "Home", href: "/" }, { name: "Journal", href: "/blog" }];
+
 export default async function BlogPage() {
   const { data, error } = await supabase
     .from("blog_posts")
@@ -37,6 +41,8 @@ export default async function BlogPage() {
   return (
     <div className="bg-white min-h-screen pt-32 pb-24 text-black">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+        <JsonLd data={breadcrumbSchema(TRAIL)} />
+        <Breadcrumbs trail={TRAIL} tone="dark" />
         <h1 className="text-6xl md:text-9xl font-black tracking-tighter uppercase text-black mb-12 border-b-2 border-black pb-8">
           Journal
         </h1>

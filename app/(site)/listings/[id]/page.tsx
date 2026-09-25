@@ -1,9 +1,11 @@
-import Link from "next/link";
 import { ReactNode, cache } from "react";
 import type { Metadata } from "next";
-import { ArrowLeft, Wifi, Car, Plane, Wine, Anchor, Coffee } from "lucide-react";
+import { Wifi, Car, Plane, Wine, Anchor, Coffee } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { OG_DEFAULTS } from "@/lib/og";
+import Link from "next/link";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
+import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
 import { logQueryError } from "@/lib/query-log";
 import { notFound } from "next/navigation";
 import BookingForm from "./BookingForm";
@@ -92,10 +94,20 @@ export default async function ListingDetail({
   return (
     <div className="bg-white min-h-screen pt-32 pb-24 text-black">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-        {/* Back Link */}
-        <Link href="/listings" className="inline-flex items-center gap-4 text-[10px] font-bold uppercase tracking-[3px] border-b border-black pb-1 mb-12 hover:opacity-50 transition-opacity">
-          <ArrowLeft size={16} /> Back to Collection
-        </Link>
+        <JsonLd
+          data={breadcrumbSchema([
+            { name: "Home", href: "/" },
+            { name: "The Collection", href: "/listings" },
+            { name: property.name, href: `/listings/${property.slug}` },
+          ])}
+        />
+        <Breadcrumbs
+          trail={[
+            { name: "Home", href: "/" },
+            { name: "The Collection", href: "/listings" },
+            { name: property.name, href: `/listings/${property.slug}` },
+          ]}
+        />
 
         {/* Hero Title */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 border-b-2 border-black pb-8">
@@ -125,6 +137,19 @@ export default async function ListingDetail({
             </h2>
             <p className="text-2xl md:text-4xl font-medium leading-[1.3] tracking-tight mb-24">
               {property.description}
+            </p>
+
+            <p className="text-base font-medium leading-[1.7] text-black/60 mb-24 max-w-2xl">
+              Every stay in{" "}
+              <Link href="/listings" className="text-black border-b border-black hover:opacity-50 transition-opacity">
+                the collection
+              </Link>{" "}
+              is arranged through our concierge. If you represent a property and want it
+              presented this way, that is what the{" "}
+              <Link href="/services" className="text-black border-b border-black hover:opacity-50 transition-opacity">
+                agency division
+              </Link>{" "}
+              does.
             </p>
 
             <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-8 border-b border-black/20 pb-4">
