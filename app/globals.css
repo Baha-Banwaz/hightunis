@@ -26,6 +26,19 @@
   }
 }
 
+/* The navigation fade, previously a framer-motion motion.div. As CSS it costs
+   no JavaScript and begins at first paint instead of waiting for hydration.
+   Starting at 0.35 rather than 0 so the content is painted, and therefore
+   eligible for Largest Contentful Paint, on the very first frame. */
+@keyframes page-fade-in {
+  from { opacity: 0.35; transform: translateY(6px); }
+  to   { opacity: 1;    transform: none; }
+}
+
+.page-fade {
+  animation: page-fade-in 0.22s ease-out both;
+}
+
 /* Keyboard focus. Every interactive element gets a visible ring; the accent
    on white is 6.2:1 and on black 3.4:1, so a white halo is layered under it
    to keep the indicator visible on the dark hero and footer too.
