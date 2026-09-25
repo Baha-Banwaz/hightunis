@@ -14,9 +14,17 @@ export const SITE_CONFIG = {
   tagline: "Tunisia's Luxury",
   description: "Luxury stays, curated experiences, unforgettable moments.",
   foundedYear: 2024,
+  // Where the business is registered and operates from. Every page that
+  // states the location reads this: the footer, About, the privacy and terms
+  // pages, the About share card, llms.txt and localBusinessSchema(). It is
+  // deliberately the only place the city is written down, because the three
+  // of them used to disagree.
+  //
+  // Not the same thing as where the properties are. Listings copy naming
+  // Sidi Bou Said, Tozeur or Bizerte is describing the collection, not us.
   headquarters: {
-    line1: "Sidi Bou Said",
-    line2: "Tunis, Tunisia",
+    line1: "Mahdia",
+    line2: "Tunisia",
   },
   // No phone number has ever existed in this codebase. Set it to a real number
   // in full international format ("+216 71 000 000") and the contact page

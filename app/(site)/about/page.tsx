@@ -11,8 +11,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "About",
   description:
-    
-    "Why HighTunis exists. Tunisia spent decades known for all-inclusive resorts while its finest estates stayed hidden. Founded 2024, based in Sidi Bou Said.",
+    "Why HighTunis exists. Tunisia spent decades known for all-inclusive resorts while its finest estates stayed hidden. Founded 2024, based in Mahdia.",
 };
 
 const TRAIL = [{ name: "Home", href: "/" }, { name: "About", href: "/about" }];

@@ -86,12 +86,12 @@ export default function ContactPage() {
               </address>
 
               <ContentTodo>
-                Street address and postcode. Two problems to settle first: there
-                is no street-level address anywhere in the codebase, and the
-                site contradicts itself about the city. SITE_CONFIG.headquarters
-                says Sidi Bou Said, Tunis; the privacy and terms pages say
-                Mahdia. Whichever is the registered address should be the one in
-                SITE_CONFIG, and everything else follows from it.
+                Street address and postcode in Mahdia, once the registered
+                entity is confirmed. The city now comes from
+                SITE_CONFIG.headquarters and every page reads it from there;
+                only the street line is still missing. It is also the last gap
+                blocking `address.streetAddress` and `postalCode` in
+                localBusinessSchema().
               </ContentTodo>
 
               <a
