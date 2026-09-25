@@ -19,21 +19,29 @@ export function formatDate(date: Date | null) {
 }
 
 export default function DatePicker({
+  id,
   label,
   value,
   onChange,
   minDate,
   isDateDisabled,
+  invalid = false,
+  describedBy,
 }: {
+  /** Ties the visible label to the trigger, so the field has an accessible name. */
+  id: string;
   label: string;
   value: Date | null;
   onChange: (date: Date) => void;
   minDate?: Date | null;
   isDateDisabled?: (date: Date) => boolean;
+  invalid?: boolean;
+  describedBy?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => value ?? new Date());
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -42,8 +50,20 @@ export default function DatePicker({
         setOpen(false);
       }
     };
+    // Escape closes the calendar and puts focus back on the trigger, so a
+    // keyboard user is never left inside a panel with no way out.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
     document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   const year = viewDate.getFullYear();
@@ -65,25 +85,37 @@ export default function DatePicker({
     value.getDate() === day;
 
   return (
-    <div ref={containerRef} className="relative flex flex-col border-b border-black pb-4">
-      <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2">
+    <div
+      ref={containerRef}
+      className={`relative flex flex-col border-b pb-4 ${invalid ? "border-red-700" : "border-black"}`}
+    >
+      <label htmlFor={id} className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-2">
         {label}
       </label>
       <button
+        id={id}
+        ref={triggerRef}
         type="button"
         onClick={() => {
           setViewDate(value ?? new Date());
           setOpen(!open);
         }}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-describedby={describedBy}
         className={`text-left bg-transparent font-bold uppercase tracking-widest text-sm ${
-          value ? "text-black" : "text-black/30"
+          value ? "text-black" : "text-black/60"
         }`}
       >
         {value ? formatDate(value) : "Select date"}
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 right-0 z-30 mt-2 bg-white border-2 border-black p-4 shadow-[6px_6px_0_0_#000]">
+        <div
+          role="dialog"
+          aria-label={`${label} calendar`}
+          className="absolute top-full left-0 right-0 z-30 mt-2 bg-white border-2 border-black p-4 shadow-[6px_6px_0_0_#000]"
+        >
           {/* Month header */}
           <div className="flex items-center justify-between mb-4">
             <button
@@ -110,7 +142,7 @@ export default function DatePicker({
           {/* Weekday row */}
           <div className="grid grid-cols-7 mb-2">
             {WEEKDAYS.map((d) => (
-              <span key={d} className="text-center text-[9px] font-bold uppercase tracking-widest text-black/40">
+              <span key={d} className="text-center text-[9px] font-bold uppercase tracking-widest text-black/60">
                 {d}
               </span>
             ))}
@@ -129,9 +161,12 @@ export default function DatePicker({
                   key={day}
                   type="button"
                   disabled={disabled}
+                  aria-label={`${day} ${MONTHS[month]} ${year}`}
+                  aria-pressed={selected}
                   onClick={() => {
                     onChange(new Date(year, month, day));
                     setOpen(false);
+                    triggerRef.current?.focus();
                   }}
                   className={`aspect-square text-xs font-bold flex items-center justify-center transition-colors ${
                     selected

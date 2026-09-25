@@ -25,7 +25,7 @@ export function LegalPage({
             {title}
           </h1>
           <p className="text-xl md:text-2xl font-medium tracking-tight max-w-3xl">{intro}</p>
-          <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/40 mt-8">
+          <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mt-8">
             Last updated {updated}
           </p>
         </div>
@@ -87,7 +87,7 @@ export function List({ items }: { items: ReactNode[] }) {
 export function Todo({ children }: { children: ReactNode }) {
   return (
     <p className="border-2 border-black bg-white px-5 py-4 text-sm font-bold uppercase tracking-[2px] leading-[1.7]">
-      <span className="block text-[10px] tracking-[3px] text-black/40 mb-2">
+      <span className="block text-[10px] tracking-[3px] text-black/60 mb-2">
         TODO_LEGAL_NEEDED
       </span>
       {children}

@@ -23,14 +23,16 @@ export default function PrivacyPage() {
     >
       <Section heading="Who is responsible">
         <p>
-          {SITE_CONFIG.name} operates this website from Mahdia, Tunisia, and decides how the
+          {SITE_CONFIG.name} operates this website from {SITE_CONFIG.headquarters.line1}, {SITE_CONFIG.headquarters.line2}, and decides how the
           information described below is used. In data protection law that makes us the
           controller.
         </p>
         <Todo>
           Registered legal entity name, legal form, and company or tax registration number.
         </Todo>
-        <Todo>Full registered address in Mahdia.</Todo>
+        <Todo>
+          Full registered address and postcode in {SITE_CONFIG.headquarters.line1}.
+        </Todo>
         <Todo>
           The email address that should receive privacy and data protection requests. The site
           currently publishes {SITE_CONFIG.emails.hello}, {SITE_CONFIG.emails.concierge},{" "}

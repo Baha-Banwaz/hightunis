@@ -97,7 +97,7 @@ export default function PropertyGallery({ images, name }: { images: string[]; na
       {/* Controls */}
       {count > 1 && (
         <div className="flex items-center justify-between mt-6">
-          <span className="text-[10px] font-bold uppercase tracking-[3px] text-black/40">
+          <span className="text-[10px] font-bold uppercase tracking-[3px] text-black/60">
             Drag or use the arrows — {String(index + 1).padStart(2, "0")} of {String(count).padStart(2, "0")}
           </span>
           <div className="flex gap-3">

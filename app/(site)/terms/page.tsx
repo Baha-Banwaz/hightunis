@@ -23,8 +23,8 @@ export default function TermsPage() {
     >
       <Section heading="Who you are dealing with">
         <p>
-          This website is operated by {SITE_CONFIG.name} from Mahdia, Tunisia. Using the site means
-          accepting these terms.
+          This website is operated by {SITE_CONFIG.name} from {SITE_CONFIG.headquarters.line1}, {SITE_CONFIG.headquarters.line2}. Using the site
+          means accepting these terms.
         </p>
         <Todo>Registered legal entity name, legal form, and registration number.</Todo>
         <Todo>Full registered address, and a contact email for legal notices.</Todo>

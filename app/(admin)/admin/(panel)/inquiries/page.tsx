@@ -508,11 +508,13 @@ function InquiriesView() {
                 </select>
               </div>
               <DatePicker
+                id="inquiry-check-in"
                 label="Check-in"
                 value={fCheckIn}
                 onChange={(d) => { setFCheckIn(d); if (fCheckOut && fCheckOut <= d) setFCheckOut(null); }}
               />
               <DatePicker
+                id="inquiry-check-out"
                 label="Check-out"
                 value={fCheckOut}
                 onChange={setFCheckOut}

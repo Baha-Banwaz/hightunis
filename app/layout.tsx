@@ -7,7 +7,13 @@ import "./globals.css";
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  // The weights the site actually uses. 400 is the default for body copy with
+  // no weight class, 500/700/900 are used throughout, and 600 is used by the
+  // admin. 800 was requested and referenced nowhere.
+  weight: ["400", "500", "600", "700", "900"],
+  // Fall back to the system stack while the webfont loads, then swap, rather
+  // than holding text invisible.
+  display: "swap",
 });
 
 export const metadata: Metadata = {

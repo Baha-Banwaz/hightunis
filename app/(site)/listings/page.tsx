@@ -3,7 +3,8 @@ import { Breadcrumbs } from "@/app/components/Breadcrumbs";
 import { JsonLd, breadcrumbSchema } from "@/lib/structured-data";
 import { supabase } from "@/lib/supabase";
 import { logQueryError } from "@/lib/query-log";
-import ListingsGrid from "./ListingsGrid";
+import ListingCard from "@/app/components/ListingCard";
+import ListingsFilter from "./ListingsFilter";
 
 export const revalidate = 3600;
 
@@ -33,7 +34,27 @@ export default async function ListingsPage() {
         <h1 className="text-6xl md:text-9xl font-black tracking-tighter uppercase text-black mb-12 border-b-2 border-black pb-8">
           The Collection
         </h1>
-        <ListingsGrid properties={properties ?? []} />
+        {/*
+          The cards are rendered here, on the server, and passed in as
+          children. ListingsFilter only decides which are displayed, so the
+          whole grid is in the initial HTML and the images start loading
+          before any JavaScript runs.
+        */}
+        <ListingsFilter categories={(properties ?? []).map((p) => p.category)}>
+          {(properties ?? []).map((p, i) => (
+            <ListingCard
+              key={p.id}
+              slug={p.slug}
+              title={p.name}
+              location={p.location}
+              price={p.price}
+              imageUrl={p.image_url}
+              category={p.category}
+              // The first two are above the fold on a phone; the rest can wait.
+              priority={i < 2}
+            />
+          ))}
+        </ListingsFilter>
       </div>
     </div>
   );

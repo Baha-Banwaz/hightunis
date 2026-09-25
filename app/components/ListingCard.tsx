@@ -9,6 +9,8 @@ export interface ListingCardProps {
   price: string;
   imageUrl: string;
   category: string;
+  /** Set on the cards above the fold so their image is not lazy-loaded. */
+  priority?: boolean;
 }
 
 export default function ListingCard({
@@ -18,6 +20,7 @@ export default function ListingCard({
   price,
   imageUrl,
   category,
+  priority = false,
 }: ListingCardProps) {
   return (
     <Link href={`/listings/${slug}`} className="group flex flex-col cursor-pointer h-full">
@@ -26,7 +29,13 @@ export default function ListingCard({
           src={imageUrl}
           alt={title}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          // The grid is one column below md and two columns at every width
+          // above it, inside a 1600px container, so a card never exceeds
+          // ~780px. The old value claimed 33vw above 1200px, which described a
+          // three-column layout that does not exist and had the browser pick
+          // an image too small for the slot.
+          sizes="(max-width: 768px) 100vw, (max-width: 1600px) 50vw, 780px"
+          priority={priority}
           className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
         />
         <div className="absolute top-4 left-4 bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-[2px]">
@@ -40,7 +49,7 @@ export default function ListingCard({
         </h3>
         <div className="flex justify-between items-end border-b-2 border-black pb-4 mt-4">
           <div className="flex flex-col">
-            <span className="text-xs font-bold uppercase tracking-widest text-black/50">{location}</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-black/60">{location}</span>
             <span className="text-lg font-bold text-black mt-1 uppercase tracking-tight">{price}</span>
           </div>
           <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[2px] group-hover:opacity-50 transition-opacity">
