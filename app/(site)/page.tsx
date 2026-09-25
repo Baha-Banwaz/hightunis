@@ -4,6 +4,22 @@ import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logQueryError } from "@/lib/query-log";
 import HomeHero from "./HomeHero";
+import type { Metadata } from "next";
+import { OG_DEFAULTS } from "@/lib/og";
+
+// The root layout uses alternates.canonical "./", which resolves against the
+// current route. That works everywhere except here: on Vercel the root page
+// re-renders under the internal path /index, so "./" produced
+// https://www.hightunis.com/index as both the canonical and og:url. Pinning
+// the root explicitly is the only place this is needed; nested routes have no
+// such ambiguity.
+//
+// openGraph must be repeated in full rather than partially overridden: Next
+// REPLACES the whole object when a segment defines one.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { ...OG_DEFAULTS, url: "/" },
+};
 
 export const revalidate = 3600;
 

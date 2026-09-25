@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { SITE_URL, SITE_CONFIG } from "@/lib/site-config";
+import { OG_DEFAULTS, TWITTER_DEFAULTS } from "@/lib/og";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -33,10 +34,10 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
   openGraph: {
-    siteName: SITE_CONFIG.name,
-    type: "website",
+    ...OG_DEFAULTS,
     url: "./",
   },
+  twitter: TWITTER_DEFAULTS,
 };
 
 export default function RootLayout({

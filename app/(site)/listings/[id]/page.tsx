@@ -3,6 +3,7 @@ import { ReactNode, cache } from "react";
 import type { Metadata } from "next";
 import { ArrowLeft, Wifi, Car, Plane, Wine, Anchor, Coffee } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { OG_DEFAULTS } from "@/lib/og";
 import { logQueryError } from "@/lib/query-log";
 import { notFound } from "next/navigation";
 import BookingForm from "./BookingForm";
@@ -61,9 +62,13 @@ export async function generateMetadata({
     title: property.name,
     description,
     openGraph: {
+      // Spread the defaults back in: Next replaces the whole openGraph object,
+      // so without this the page loses siteName and type.
+      ...OG_DEFAULTS,
       title: `${property.name} | HighTunis`,
       description,
-      images: property.image_url ? [property.image_url] : [],
+      // Fall back to the site share image when this record has no photo.
+      images: property.image_url ? [property.image_url] : OG_DEFAULTS.images,
     },
   };
 }

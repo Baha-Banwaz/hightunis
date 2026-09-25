@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { OG_DEFAULTS } from "@/lib/og";
 import { logQueryError } from "@/lib/query-log";
 import { notFound } from "next/navigation";
 
@@ -48,9 +49,13 @@ export async function generateMetadata({
     title: post.title,
     description,
     openGraph: {
+      // Spread the defaults back in: Next replaces the whole openGraph object,
+      // so without this the page loses siteName and type.
+      ...OG_DEFAULTS,
       title: `${post.title} | HighTunis`,
       description,
-      images: post.cover_image ? [post.cover_image] : [],
+      // Fall back to the site share image when this record has no photo.
+      images: post.cover_image ? [post.cover_image] : OG_DEFAULTS.images,
     },
   };
 }
