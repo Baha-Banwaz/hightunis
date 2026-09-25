@@ -18,6 +18,12 @@ export const SITE_CONFIG = {
     line1: "Sidi Bou Said",
     line2: "Tunis, Tunisia",
   },
+  // No phone number has ever existed in this codebase. Set it to a real number
+  // in full international format ("+216 71 000 000") and the contact page
+  // renders it as a tel: link and localBusinessSchema() starts emitting
+  // `telephone`. Left null on purpose: a placeholder number on a luxury
+  // concierge site is worse than no number.
+  phone: null as string | null,
   emails: {
     hello: "hello@hightunis.com",
     concierge: "concierge@hightunis.com",
