@@ -20,7 +20,13 @@ export function JsonLd({ data }: { data: object }) {
 }
 
 /**
- * LocalBusiness. Deliberately incomplete.
+ * TravelAgency, a schema.org subtype of LocalBusiness. Deliberately incomplete.
+ *
+ * The type is the more specific one because it is the accurate one: HighTunis
+ * arranges stays with properties on a client's behalf rather than supplying
+ * accommodation itself. LodgingBusiness or Hotel would have been a
+ * misstatement of the role, and structured data is a claim made to search
+ * engines in a machine-readable form, so a wrong type is a wrong claim.
  *
  * TODO_CONTENT_NEEDED: registered legal entity name, for `legalName`.
  * TODO_CONTENT_NEEDED: street address and postcode in Mahdia, for
@@ -36,7 +42,7 @@ export function JsonLd({ data }: { data: object }) {
 export function localBusinessSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
+    "@type": "TravelAgency",
     "@id": `${SITE_URL}/#business`,
     name: SITE_CONFIG.name,
     description: SITE_CONFIG.description,
