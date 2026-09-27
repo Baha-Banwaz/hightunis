@@ -26,6 +26,17 @@ export default function TermsPage() {
           This website is operated by {SITE_CONFIG.name} from {SITE_CONFIG.headquarters.line1}, {SITE_CONFIG.headquarters.line2}. Using the site
           means accepting these terms.
         </p>
+        <p>
+          <strong className="text-black">We are an intermediary, not the property.</strong> We take
+          your enquiry, discuss it with you, and book with the property on your behalf. We do not
+          own, operate or let the properties in the collection. When a stay is confirmed, the stay
+          itself is supplied by the property, and its own terms apply to it.
+        </p>
+        <p>
+          What that means in practice: you deal with us throughout, and we remain your point of
+          contact. What the property must deliver, and on what conditions it may be cancelled, come
+          from the property.
+        </p>
         <Todo>Registered legal entity name, legal form, and registration number.</Todo>
         <Todo>Full registered address, and a contact email for legal notices.</Todo>
       </Section>
@@ -66,20 +77,73 @@ export default function TermsPage() {
           charges and cleaning fees, and what a guest should expect to pay on top.
         </Todo>
         <Todo>
-          Whether you are contracting directly with the guest, or acting as an intermediary for the
-          property owner. This determines who owes the guest what, and it changes the rest of this
-          document substantially.
+          Whether the price we quote is the property&apos;s price passed on, or the
+          property&apos;s price plus our fee, and whether that fee is shown separately. A consumer
+          is entitled to a total price before committing.
         </Todo>
       </Section>
 
       <Section heading="Cancellations and refunds">
+        <p>
+          Cancellation is governed by the terms of the individual property, because the property is
+          what supplies the stay. We confirm those terms to you in writing before anything is
+          booked, so the conditions are known to you before you commit to them.
+        </p>
         <Todo>
-          A cancellation and refund policy. There is none at present, and no payment mechanism for
-          one to attach to. If you take deposits by bank transfer outside this website, the terms
-          governing those need to be written down, including deadlines, amounts retained, and how
-          EU consumers exercise any right of withdrawal. Note that accommodation booked for a
-          specific date is generally excluded from the standard fourteen day withdrawal right, but
-          that exclusion has conditions.
+          What we do ourselves when a booking is cancelled: whether any part of what you have paid
+          us is retained, on what timetable, and whether an arrangement fee is refundable
+          separately from the property&apos;s own charges. The property&apos;s terms do not answer
+          this, and it is our side of the arrangement.
+        </Todo>
+        <Todo>
+          How an EU consumer exercises a right of withdrawal, and whether it applies at all.
+          Accommodation for a specific date is generally excluded from the fourteen day right, but
+          that exclusion has conditions, and it may sit differently where the booking is arranged
+          by an intermediary rather than sold by the provider.
+        </Todo>
+      </Section>
+
+      <Section heading="Transfers, drivers and travel packages">
+        <p>
+          Airport transfers and a personal driver can be arranged alongside a stay. They are
+          quoted separately and supplied by the operator providing them.
+        </p>
+        <Todo>
+          Urgent, and the reason this section exists. Combining accommodation with transport for
+          the same trip can turn an arrangement into a travel package, or a linked travel
+          arrangement, under the EU Package Travel Directive 2015/2302 and its national
+          implementations. That is not a labelling question. Where it applies, the organiser
+          becomes responsible for the whole trip performing as promised, must give the traveller a
+          prescribed information form before they commit, and must hold insolvency protection
+          covering money paid and repatriation.
+          <br />
+          <br />
+          This site offers exactly that combination: a stay, plus airport transfers both ways, plus
+          a driver for the duration. Whether it crosses the threshold depends on how the two are
+          sold, quoted and invoiced, and on which country&apos;s implementation applies to the
+          traveller. Establish this before the next booking that includes a transfer, not after.
+          Being an intermediary rather than the property does not by itself avoid it, because the
+          Directive attaches to whoever combines the services.
+        </Todo>
+      </Section>
+
+      <Section heading="Who is responsible for what">
+        <p>
+          We are responsible for arranging your booking with reasonable care and skill, for
+          representing your requirements accurately to the property, and for confirming back to
+          you in writing what has been agreed.
+        </p>
+        <p>
+          The property is responsible for the stay itself, for the accommodation matching what was
+          described, and for its condition and safety on arrival.
+        </p>
+        <Todo>
+          A reviewed liability clause. This section describes the split but does not limit
+          anything, deliberately: an intermediary cannot simply disclaim responsibility to a
+          consumer, and a clause that tried to would risk being unenforceable as an unfair term
+          while also being the clause a dispute turns on. Needs drafting with the consumer
+          protection rules of the countries your guests come from in view, and it interacts with
+          the package travel question above.
         </Todo>
       </Section>
 
