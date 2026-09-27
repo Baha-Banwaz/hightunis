@@ -91,17 +91,57 @@ export default function PrivacyPage() {
         <List
           items={[
             "No cookies are set when you browse this site. See the cookie policy.",
-            "No analytics of any kind. There is no Google Analytics, no tag manager, no visitor counter and no heatmap.",
             "No advertising, no remarketing, no tracking pixels and no social media tracking.",
             "No profiling and no automated decision making.",
             "No visitor accounts, so no passwords and no login history.",
             "No newsletter list. We do not add you to a mailing list.",
             <>
-              No third party receives your browser&apos;s requests. Images and fonts are served
-              from this domain, so external services are not contacted while you browse.
+              Your browser contacts no other company&apos;s servers. Images and fonts are served
+              from this domain, and the audience measurement described below is collected through
+              this domain too.
             </>,
           ]}
         />
+      </Section>
+
+      <Section heading="Audience measurement">
+        <p>
+          We use Vercel Web Analytics, run by Vercel, who also host this site. It counts page
+          views so we can see which pages are read. It does not use cookies, and it stores nothing
+          on your device: no cookie, no local storage, no identifier of any kind.
+        </p>
+        <p>
+          It does not know who you are. Instead of an identifier that follows you, it derives a
+          value from your request, and that value is discarded after 24 hours. It cannot be used
+          to recognise you tomorrow, and it cannot follow you to any other website.
+        </p>
+        <p>According to Vercel, each page view records:</p>
+        <List
+          items={[
+            "The time, the page address, and the page template that address matched.",
+            "The address of the page that linked you here, if there was one, and campaign tags in the link.",
+            "Your approximate location: country, region and city. Never a street address.",
+            "Your device type, operating system and browser, each with a version number.",
+          ]}
+        />
+        <p>
+          Your IP address is not stored, and no data point is tied to one. Nothing here identifies
+          you, and none of it is combined with an enquiry you send. The admin area is excluded
+          entirely: the measurement script is never loaded there.
+        </p>
+        <Todo>
+          Legal review of whether this needs consent. Our reading: it stores nothing on your device,
+          which is what the ePrivacy rules on cookies and similar technologies attach to, so a
+          banner should not be required, and Vercel states it is designed for that. This is a
+          defensible reading rather than a settled one: regulators in different countries treat
+          cookieless measurement differently, and a value derived from a request is still personal
+          data under GDPR even when it is short-lived. Confirm before relying on it, and record
+          which lawful basis is claimed for the processing.
+        </Todo>
+        <p>
+          Vercel is the processor for this data. See the section on who else can see your
+          information for what that means.
+        </p>
       </Section>
 
       <Section heading="Why we are allowed to use it">

@@ -22,9 +22,10 @@ export default function CookiesPage() {
     >
       <Section heading="The short version">
         <p>
-          Visiting any page on this website, reading a property, or sending an enquiry places
-          nothing on your device. No cookies, no local storage, no tracking identifiers. There is
-          no banner because there is nothing to consent to.
+          This site sets no cookies, and nothing here tracks you between visits or follows you to
+          other websites. Two things are worth naming precisely, and both are described below: we
+          count page views without storing anything on your device, and if you dismiss the enquiry
+          bar on a phone we remember that for the rest of your visit.
         </p>
       </Section>
 
@@ -35,8 +36,10 @@ export default function CookiesPage() {
           social media cookies all need it. Cookies that only keep you logged in do not.
         </p>
         <p>
-          Since this site stores nothing in the first category, asking for permission would be
-          asking about something that does not happen.
+          The rule attaches to storing things on your device, not to counting visits. The audience
+          measurement described below stores nothing at all on your device, so there is nothing for
+          it to ask about. The one thing this site does store is the note that you closed the
+          enquiry bar, which exists only because you asked for it by closing it.
         </p>
       </Section>
 
@@ -75,8 +78,14 @@ export default function CookiesPage() {
 
       <Section heading="Third parties">
         <p>
-          None. There is no analytics service, no tag manager, no advertising network, no embedded
-          video, no map, no chat widget and no social media plugin on any page.
+          No tag manager, no advertising network, no embedded video, no map, no chat widget and no
+          social media plugin on any page.
+        </p>
+        <p>
+          Page views are counted by Vercel Web Analytics. Vercel already hosts this site, and the
+          counting is served through this domain rather than from another company&apos;s address,
+          so your browser still contacts nobody else. It sets no cookies and stores nothing on your
+          device. The privacy policy lists exactly what each page view records.
         </p>
         <p>
           Photographs and fonts are served from this domain rather than from an external service,
@@ -88,8 +97,14 @@ export default function CookiesPage() {
 
       <Section heading="Other storage">
         <p>
-          The site does not use local storage, session storage or any browser database. Nothing
-          persists between visits.
+          One item, and only on a phone. If you close the bar at the bottom of the screen offering
+          to help plan a stay, that is noted in session storage so it does not reappear on the next
+          page. It holds no identifier, it is readable only by this site, it is never sent
+          anywhere, and your browser discards it when you close the tab.
+        </p>
+        <p>
+          Nothing else is stored. No local storage, no browser database, and nothing that persists
+          between visits.
         </p>
       </Section>
 
@@ -103,13 +118,17 @@ export default function CookiesPage() {
 
       <Section heading="If this changes">
         <p>
-          Adding anything that measures visitors, such as Google Analytics, would change this.
-          Then a consent banner would be required before it loaded, refusing would have to be as
-          easy as accepting, and this page would be updated to list what it sets.
+          Adding a conventional analytics product, such as Google Analytics, would change this,
+          because those identify visitors with a cookie. A banner would then be required before it
+          loaded, refusing would have to be as easy as accepting, and this page would list what it
+          sets.
         </p>
         <Todo>
-          Decide whether analytics are wanted. If so, the banner and the consent-gated loading have
-          to be built before the analytics go in, not after.
+          Legal review of the audience measurement now in use. It stores nothing on a visitor&apos;s
+          device, which is what the cookie rules attach to, so our reading is that no banner is
+          required. That reading is defensible rather than settled: regulators in different
+          countries treat cookieless measurement differently. Confirm it, and record the lawful
+          basis for the processing.
         </Todo>
       </Section>
 
