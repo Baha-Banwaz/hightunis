@@ -12,12 +12,21 @@ import { Analytics } from "@vercel/analytics/next";
  * directly.
  *
  * WHY NO CSP CHANGE IS NEEDED, in production.
- *   The script is served from /_vercel/insights/script.js and the beacon is
- *   posted to /_vercel/insights/*, both on our own origin: Vercel's edge
- *   proxies them rather than the browser talking to a Vercel domain. So
- *   script-src 'self' and connect-src 'self' already cover it, and neither has
- *   to be loosened. Verified by reading getScriptSrc() in the installed
- *   package rather than taking the documentation's word for it.
+ *   Both the script and the beacon are served from our own origin, so
+ *   script-src 'self' and connect-src 'self' already cover them and neither
+ *   has to be loosened. The browser never contacts a Vercel domain.
+ *
+ *   The paths are not the documented /_vercel/insights/* in practice. Version
+ *   2 of the package has what Vercel calls Resilient Intake: a random seed
+ *   generated at build time becomes the path, so this deployment serves
+ *   /de7e265292cd815d/script.js and posts views to /de7e265292cd815d/view,
+ *   and the next deployment will use a different prefix. The point of that is
+ *   to be harder for ad blockers to pattern-match. It stays first-party, so
+ *   the CSP is unaffected either way.
+ *
+ *   Confirmed against the live site, not assumed: on a public page the only
+ *   non-Next requests are the logo, that script and that view beacon, with
+ *   zero third-party origins and zero cookies, localStorage or sessionStorage.
  *
  *   In local development the package deliberately loads a different file, from
  *   https://va.vercel-scripts.com, which our CSP does block. That is why this
