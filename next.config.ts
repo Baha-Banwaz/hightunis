@@ -38,7 +38,13 @@ const csp = [
   `form-action 'self'`,
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   `style-src 'self' 'unsafe-inline'`,
-  `img-src 'self' data: blob: https://images.unsplash.com ${supabaseOrigin}`,
+  // tile.openstreetmap.org: the basemap on /listings. IMAGES ONLY, and this
+  // is the only third-party origin the site loads anything from. The map is
+  // behind a button, so a visitor who never opens it never reaches this host.
+  // script-src and connect-src are deliberately untouched: Leaflet is bundled
+  // from npm and raster tiles arrive as <img>, so no script and no fetch
+  // crosses to them.
+  `img-src 'self' data: blob: https://images.unsplash.com https://tile.openstreetmap.org ${supabaseOrigin}`,
   `font-src 'self' data:`,
   `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
   `media-src 'self'`,
