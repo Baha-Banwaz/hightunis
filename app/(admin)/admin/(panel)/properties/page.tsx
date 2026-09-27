@@ -10,6 +10,9 @@ interface Property {
   slug: string;
   category: string;
   location: string;
+  /** Real coordinates. The public map draws an approximate circle, never a pin. */
+  latitude: number | null;
+  longitude: number | null;
   price: string;
   description: string;
   image_url: string;
@@ -27,6 +30,8 @@ const EMPTY_FORM: Omit<Property, "id"> = {
   slug: "",
   category: "Villas",
   location: "",
+  latitude: null,
+  longitude: null,
   price: "",
   description: "",
   image_url: "",
@@ -85,6 +90,8 @@ export default function AdminProperties() {
       slug: p.slug,
       category: p.category,
       location: p.location,
+      latitude: p.latitude ?? null,
+      longitude: p.longitude ?? null,
       price: p.price,
       description: p.description,
       image_url: p.image_url,
@@ -273,6 +280,22 @@ export default function AdminProperties() {
                 </p>
               </div>
               <Field label="Location" value={form.location} onChange={(v) => setForm({ ...form, location: v })} />
+              <CoordField
+                label="Latitude"
+                value={form.latitude}
+                min={-90}
+                max={90}
+                hint="e.g. 36.8702. Paste from Google Maps: right-click the spot, click the numbers to copy."
+                onChange={(v) => setForm({ ...form, latitude: v })}
+              />
+              <CoordField
+                label="Longitude"
+                value={form.longitude}
+                min={-180}
+                max={180}
+                hint="e.g. 10.3417. The second of the two numbers."
+                onChange={(v) => setForm({ ...form, longitude: v })}
+              />
               <Field label="Price" value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">Description</label>
@@ -347,10 +370,56 @@ export default function AdminProperties() {
   );
 }
 
+/**
+ * A coordinate box. Empty means "not placed", which is why the value is
+ * number | null rather than number: 0 is a real coordinate, off the coast of
+ * Ghana, so it cannot double as "no value".
+ *
+ * Validation mirrors the CHECK constraints on the table. The database is
+ * still the authority; this exists so a typo is caught next to the field
+ * rather than as a failed save.
+ */
+function CoordField({
+  label, value, min, max, hint, onChange,
+}: {
+  label: string;
+  value: number | null;
+  min: number;
+  max: number;
+  hint: string;
+  onChange: (v: number | null) => void;
+}) {
+  const id = `coord-${label.toLowerCase()}`;
+  const out = value !== null && (value < min || value > max);
+  return (
+    <div>
+      <label htmlFor={id} className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-2 block">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="number"
+        inputMode="decimal"
+        step="any"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
+        aria-invalid={out}
+        aria-describedby={`${id}-hint`}
+        className={`w-full border-2 px-4 py-3 text-sm font-semibold transition-colors ${
+          out ? "border-red-700" : "border-black/20 focus:border-black"
+        }`}
+      />
+      <p id={`${id}-hint`} className={`mt-2 text-[10px] font-semibold leading-[1.6] ${out ? "text-red-700" : "text-black/60"}`}>
+        {out ? `Must be between ${min} and ${max}. Check you have not swapped latitude and longitude.` : hint}
+      </p>
+    </div>
+  );
+}
+
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/50 mb-2 block">{label}</label>
+      <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-2 block">{label}</label>
       <input
         type="text"
         value={value}

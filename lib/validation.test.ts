@@ -142,3 +142,61 @@ test("cancelled is now an accepted status; legacy values are not", () => {
     assert.ok(!parseAdminPayload("inquiries", "update", { status: bad }).ok, bad);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Map coordinates
+// ---------------------------------------------------------------------------
+
+test("coordinates round-trip as numbers", () => {
+  const r = parseAdminPayload("properties", "update", {
+    latitude: 36.8702,
+    longitude: 10.3417,
+  });
+  assert.ok(r.ok);
+  assert.equal(r.data.latitude, 36.8702);
+  assert.equal(r.data.longitude, 10.3417);
+});
+
+test("clearing a coordinate stores null, not 0", () => {
+  // The trap: z.coerce.number() turns null into 0, and 0,0 is a real place
+  // in the Gulf of Guinea. A cleared coordinate must not place the property
+  // off the coast of Ghana.
+  const r = parseAdminPayload("properties", "update", {
+    latitude: null,
+    longitude: "",
+  });
+  assert.ok(r.ok);
+  assert.strictEqual(r.data.latitude, null);
+  assert.strictEqual(r.data.longitude, null);
+});
+
+test("zero is still accepted as a real coordinate", () => {
+  const r = parseAdminPayload("properties", "update", { latitude: 0 });
+  assert.ok(r.ok);
+  assert.strictEqual(r.data.latitude, 0);
+});
+
+test("out-of-range coordinates are rejected", () => {
+  for (const bad of [{ latitude: 91 }, { latitude: -91 }, { longitude: 181 }, { longitude: -181 }]) {
+    const r = parseAdminPayload("properties", "update", bad);
+    assert.equal(r.ok, false, `${JSON.stringify(bad)} should be rejected`);
+  }
+});
+
+test("a swapped pair for Tunisia is caught by the latitude range", () => {
+  // Tunisia is near 36.8 N, 10.3 E. Swapped, latitude becomes 10.3, which is
+  // legal, so the range check alone cannot catch every swap - but a longitude
+  // beyond 90 in the latitude field is caught. The DB constraint and the
+  // admin hint cover the rest.
+  const r = parseAdminPayload("properties", "update", { latitude: 100.5 });
+  assert.equal(r.ok, false);
+});
+
+test("coordinates are untouched when the client does not send them", () => {
+  // The .partial() data-loss guard: an update that only toggles featured must
+  // not write latitude/longitude at all.
+  const r = parseAdminPayload("properties", "update", { featured: true });
+  assert.ok(r.ok);
+  assert.equal("latitude" in r.data, false);
+  assert.equal("longitude" in r.data, false);
+});

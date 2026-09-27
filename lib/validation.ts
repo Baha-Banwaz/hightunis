@@ -153,11 +153,26 @@ export const availabilityQuerySchema = z.object({
 // Re-exported for the admin UI, which imports statuses and schemas together.
 export { INQUIRY_STATUSES } from "./inquiry-status.ts";
 
+/**
+ * A coordinate, or null for "not placed on the map".
+ *
+ * null FIRST, for the same reason amount_cents orders its union that way:
+ * z.coerce.number() turns null into 0, and 0 is a real coordinate in the
+ * Gulf of Guinea. Taking the null branch first stops clearing a coordinate
+ * from silently placing the property off the coast of Ghana.
+ */
+const coordinate = (min: number, max: number, label: string) =>
+  z
+    .union([z.null(), z.literal(""), z.coerce.number().min(min, `${label} must be between ${min} and ${max}`).max(max, `${label} must be between ${min} and ${max}`)])
+    .transform((v) => (v === "" || v === null ? null : v));
+
 const propertyBase = z.object({
   name: requiredText(200, "Name"),
   slug,
   category: requiredText(80, "Category"),
   location: requiredText(160, "Location"),
+  latitude: coordinate(-90, 90, "Latitude").optional(),
+  longitude: coordinate(-180, 180, "Longitude").optional(),
   price: requiredText(80, "Price"),
   description: requiredText(8000, "Description"),
   image_url: imageUrl().pipe(z.string({ error: "A main image is required" })),
