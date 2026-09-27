@@ -6,28 +6,46 @@ export interface FaqItem {
 }
 
 /**
- * TODO_CONTENT_NEEDED
+ * Written by the owner, September 2026. Their words, lightly punctuated;
+ * nothing here is invented, and nothing should be added that is not.
  *
- * Five questions, written by the owner, and their answers. Not invented here:
- * the whole value of an FAQ is that it answers what people actually ask, and
- * only the person reading the inbox knows that.
+ * These are load-bearing beyond the page. The booking answer states that
+ * HighTunis books with the property on the client's behalf rather than being
+ * the contracting party, and the cancellation answer states that the
+ * property's own terms govern. The terms and privacy pages have to keep
+ * saying the same thing.
  *
- * Fill this array and the section renders. Leave it empty and the section does
- * not appear on the live site at all - an empty FAQ heading is worse than no
- * FAQ. Plain strings, one or two sentences each; the answer is rendered as
- * text, not HTML.
- *
- * Worth considering, based on what the enquiry form already asks for: how
- * booking and payment actually work, how far ahead to book, what the concierge
- * arranges beyond the stay, whether staff or transfers are included, and what
- * happens if plans change.
- *
- * Once these are real, they are also the natural source for FAQPage
- * structured data in lib/structured-data.tsx. Do not add that schema before
- * the questions are real and visible on the page: marking up questions that
- * are not shown to visitors is exactly what search engines penalise.
+ * If these change, FAQPage structured data becomes worth adding in
+ * lib/structured-data.tsx. Only mark up questions that are actually visible
+ * on the page.
  */
-export const FAQ_ITEMS: FaqItem[] = [];
+export const FAQ_ITEMS: FaqItem[] = [
+  {
+    question: "How does booking work?",
+    answer:
+      "You send us an enquiry with the dates and the property you're interested in. We talk it through with you, then book directly with the property on your behalf and come back to confirm. You deal with us throughout, not the property.",
+  },
+  {
+    question: "What's included in a stay?",
+    answer:
+      "The stay itself is what's listed. Airport transfers both ways and a personal driver for the duration are available as add-ons, priced separately depending on the property and length of stay. Tell us what you need when you enquire and we'll quote it.",
+  },
+  {
+    question: "Can I cancel?",
+    answer:
+      "Yes. Cancellations are subject to the individual property's terms, which we confirm with you in writing before anything is booked, so you always know where you stand.",
+  },
+  {
+    question: "How far in advance should I book?",
+    answer:
+      "At least two days before arrival, so we have time to call and confirm everything with you and with the property. Longer for peak dates or specific properties.",
+  },
+  {
+    question: "Do you work with properties outside your collection?",
+    answer:
+      "Yes. The collection is what we present publicly, but if you have somewhere in mind or a type of stay you're looking for, ask us.",
+  },
+];
 
 export function Faq({
   items = FAQ_ITEMS,
