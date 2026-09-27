@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Cookie Policy",
   description:
     
-    "This site sets no cookies when you browse it and shows no consent banner, because there is nothing to consent to. No analytics, no tracking, no third parties.",
+    "This site sets no cookies and shows no consent banner. Page views are counted without storing anything on your device, and nothing follows you to other sites.",
   // Draft. Remove once a lawyer has reviewed it and the TODOs are filled.
   robots: "noindex, nofollow",
 };

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     
-    "What HighTunis collects when you send an enquiry, where it is stored, who can read it and the rights you have over it. No cookies, no analytics, no tracking.",
+    "What HighTunis collects when you send an enquiry, where it is stored, who can read it and the rights you have over it. No cookies and no cross-site tracking.",
   // Draft. Remove once a lawyer has reviewed it and the TODOs are filled.
   robots: "noindex, nofollow",
 };
