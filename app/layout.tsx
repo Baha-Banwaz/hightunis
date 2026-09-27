@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { SITE_URL, SITE_CONFIG } from "@/lib/site-config";
 import { OG_DEFAULTS, TWITTER_DEFAULTS } from "@/lib/og";
+import SiteAnalytics from "@/app/components/SiteAnalytics";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -59,6 +60,7 @@ export default function RootLayout({
         className={`${dmSans.variable} font-sans min-h-screen flex flex-col antialiased bg-white text-rich-black`}
       >
         {children}
+        <SiteAnalytics />
       </body>
     </html>
   );
