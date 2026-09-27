@@ -96,9 +96,10 @@ export default function PrivacyPage() {
             "No visitor accounts, so no passwords and no login history.",
             "No newsletter list. We do not add you to a mailing list.",
             <>
-              Your browser contacts no other company&apos;s servers. Images and fonts are served
-              from this domain, and the audience measurement described below is collected through
-              this domain too.
+              Your browser contacts no other company&apos;s servers while you browse. Images and
+              fonts are served from this domain, and the audience measurement described below is
+              collected through this domain too. The one exception is the map on the collection
+              page, which loads nothing until you ask it to; it has its own section below.
             </>,
           ]}
         />
@@ -142,6 +143,44 @@ export default function PrivacyPage() {
           Vercel is the processor for this data. See the section on who else can see your
           information for what that means.
         </p>
+      </Section>
+
+      <Section heading="The map on the collection page">
+        <p>
+          The collection page can show an approximate map of where the properties are.{" "}
+          <strong className="text-black">It loads nothing until you tap it.</strong> Until then it
+          is a still panel with a button, and no request leaves your browser for it.
+        </p>
+        <p>
+          When you do open it, the map images come from servers run by the OpenStreetMap
+          Foundation. That is a different organisation from us, and it is the only time this
+          website causes your browser to contact anyone other than us. Opening the map tells them:
+        </p>
+        <List
+          items={[
+            "Your IP address, because any request carries one.",
+            "Which parts of the map you looked at, which is the area you were interested in rather than where you are.",
+            "That the request came from this website.",
+          ]}
+        />
+        <p>
+          They set no cookies through this and store nothing on your device. We receive nothing
+          back from them, and we cannot tell from our own records whether you opened the map.
+        </p>
+        <p>
+          The locations shown are deliberately approximate. Each property is drawn as a circle
+          covering roughly a kilometre, not as an exact point, because these are private homes and
+          publishing their precise addresses would not be safe or fair to the people who own them.
+          The exact address is given when a stay is confirmed.
+        </p>
+        <Todo>
+          Legal review of the consent position for the map, alongside the analytics question.
+          Our reading: it stores nothing on your device, which is what the cookie rules attach to,
+          and it loads only on a deliberate action, which is a stronger position than analytics
+          has. Against that, the OpenStreetMap Foundation receives an IP address and is a separate
+          controller with no contract between us, which analytics does not involve. Confirm which
+          way this falls, and whether the tap-to-open design is itself doing the work of consent.
+        </Todo>
       </Section>
 
       <Section heading="Why we are allowed to use it">

@@ -78,14 +78,22 @@ export default function CookiesPage() {
 
       <Section heading="Third parties">
         <p>
-          No tag manager, no advertising network, no embedded video, no map, no chat widget and no
-          social media plugin on any page.
+          No tag manager, no advertising network, no embedded video, no chat widget and no social
+          media plugin on any page.
         </p>
         <p>
           Page views are counted by Vercel Web Analytics. Vercel already hosts this site, and the
           counting is served through this domain rather than from another company&apos;s address,
-          so your browser still contacts nobody else. It sets no cookies and stores nothing on your
-          device. The privacy policy lists exactly what each page view records.
+          so it does not put your browser in touch with anyone else. It sets no cookies and stores
+          nothing on your device. The privacy policy lists exactly what each page view records.
+        </p>
+        <p>
+          <strong className="text-black">There is one map, on the collection page.</strong> It
+          loads nothing at all until you tap it: until then it is a still panel with a button.
+          Tapping it fetches map images from the OpenStreetMap Foundation, which is the only time
+          anything on this site causes your browser to contact another organisation. Those
+          requests set no cookies and store nothing on your device. What the Foundation can see is
+          set out in the privacy policy.
         </p>
         <p>
           Photographs and fonts are served from this domain rather than from an external service,
@@ -124,11 +132,12 @@ export default function CookiesPage() {
           sets.
         </p>
         <Todo>
-          Legal review of the audience measurement now in use. It stores nothing on a visitor&apos;s
-          device, which is what the cookie rules attach to, so our reading is that no banner is
-          required. That reading is defensible rather than settled: regulators in different
-          countries treat cookieless measurement differently. Confirm it, and record the lawful
-          basis for the processing.
+          Legal review of two things now in use: the audience measurement, and the map. Neither
+          stores anything on a visitor&apos;s device, which is what the cookie rules attach to, so
+          our reading is that no banner is required for either. That reading is defensible rather
+          than settled. The map is the more awkward of the two, because it sends an IP address to
+          an organisation we have no contract with, though it only does so when the visitor asks
+          it to. Confirm both, and record the lawful basis.
         </Todo>
       </Section>
 
