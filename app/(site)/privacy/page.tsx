@@ -168,11 +168,31 @@ export default function PrivacyPage() {
 
       <Section heading="Where it goes">
         <p>
-          Your enquiry is stored in a Supabase database. It is read through a password-protected
-          administration panel on this site. Enquiries are not forwarded to a mailing service, a
-          CRM, or any other third party.
+          Your enquiry is stored in a Supabase database and read through a password-protected
+          administration panel on this site. It is not forwarded to a mailing service, a CRM, an
+          advertiser or a data broker.
         </p>
-        <p>These are the only processors involved:</p>
+        <p>
+          <strong className="text-black">It is sent to the property when you book.</strong> We
+          arrange stays on your behalf rather than supplying them ourselves, so making a booking
+          means giving the property what it needs to hold the reservation: normally your name, the
+          dates, the number of guests and a contact detail. That happens when a booking is being
+          made, not when you first enquire, and we send what the booking requires rather than your
+          whole enquiry.
+        </p>
+        <p>
+          The property decides for itself what it then does with those details, which makes it a
+          separate controller rather than someone acting on our instructions. Its own privacy
+          notice governs what it holds. Most of the properties we work with are in Tunisia, so this
+          is also a transfer outside the European Economic Area; see below.
+        </p>
+        <Todo>
+          What is actually sent to a property, field by field, and by what route. Also whether any
+          written terms bind properties on what they may do with a guest&apos;s details, and
+          whether an EEA guest&apos;s data reaching a Tunisian property is covered by standard
+          contractual clauses or relies on the contract-performance derogation in Article 49(1)(b).
+        </Todo>
+        <p>These are the processors acting on our instructions:</p>
         <List
           items={[
             <>
@@ -201,6 +221,12 @@ export default function PrivacyPage() {
           the European Economic Area, that means your information leaves it. Tunisia has not been
           found by the European Commission to provide an equivalent level of protection, so a
           safeguard such as standard contractual clauses is required.
+        </p>
+        <p>
+          Booking adds a second route out. When we place a booking for you, the details the
+          property needs go to that property, and the properties are in Tunisia. That is a separate
+          transfer from the hosting described above, to a recipient that decides things for itself
+          rather than acting on our instructions, and it needs its own answer.
         </p>
         <Todo>
           Confirmation from a lawyer of which transfer mechanism applies and what has been signed.
