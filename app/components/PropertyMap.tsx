@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Circle, Tooltip, useMap } from "react-leaflet";
@@ -23,6 +23,24 @@ export interface MappedProperty {
  * marker: a circle cannot be mistaken for an address, which a pin can.
  */
 const APPROX_RADIUS_METRES = 900;
+
+/**
+ * The closest the map will ever go, and the zoom used when there is nothing to
+ * fit to. Chosen from the radius rather than picked by eye: at latitude 36 a
+ * 900m circle is 29px across at zoom 11 and 233px at zoom 14, so anything
+ * below 13 shows the "approximate area" as a dot, which defeats the point of
+ * drawing a circle instead of a pin.
+ *
+ *   zoom 11 ->  29px    zoom 13 -> 116px
+ *   zoom 12 ->  58px    zoom 14 -> 233px
+ *
+ * 13 reads clearly as a circle while keeping the surrounding neighbourhood in
+ * view. It is also the cap on fitBounds, so several properties in one town
+ * cannot zoom past it either.
+ */
+const CIRCLE_READABLE_ZOOM = 13;
+
+const POINTER_QUERY = "(pointer: fine)";
 
 /**
  * Fits the view to whatever is being shown, so one distant property does not
@@ -54,8 +72,11 @@ function FitToProperties({ items }: { items: MappedProperty[] }) {
     const frame = requestAnimationFrame(() => {
       map.invalidateSize();
 
+      // One property: there are no bounds to fit. Fitting a single point is
+      // degenerate and Leaflet resolves it to the maximum zoom or to nothing
+      // useful, which is how a one-property map ended up showing North Africa.
       if (items.length === 1) {
-        map.setView([items[0].latitude, items[0].longitude], 11);
+        map.setView([items[0].latitude, items[0].longitude], CIRCLE_READABLE_ZOOM);
         return;
       }
 
@@ -69,16 +90,20 @@ function FitToProperties({ items }: { items: MappedProperty[] }) {
       const west = Math.min(...lngs);
       const east = Math.max(...lngs);
 
-      // Several properties in one town give near-identical corners, which
-      // fits to maximum zoom for the same reason as above.
-      if (north - south < 0.02 && east - west < 0.02) {
-        map.setView([(north + south) / 2, (east + west) / 2], 11);
+      // Identical coordinates give zero-area bounds, which fitBounds cannot
+      // resolve at all. Two properties in the same building would do it.
+      if (north === south && east === west) {
+        map.setView([north, east], CIRCLE_READABLE_ZOOM);
         return;
       }
 
+      // maxZoom does the rest of the work: properties spread across the
+      // country fit normally, and two a few hundred metres apart stop at the
+      // zoom where their circles still read as circles rather than filling
+      // the frame. No special case needed for "close together".
       map.fitBounds(latLngBounds([south, west], [north, east]), {
         padding: [48, 48],
-        maxZoom: 12,
+        maxZoom: CIRCLE_READABLE_ZOOM,
       });
     });
 
@@ -88,8 +113,38 @@ function FitToProperties({ items }: { items: MappedProperty[] }) {
   return null;
 }
 
+/**
+ * Does this visitor have a precise pointing device, i.e. a mouse or trackpad?
+ *
+ * `(pointer: fine)` rather than a width breakpoint. Width is a proxy for
+ * input, and a bad one: a touchscreen laptop is wide, and a desktop window
+ * dragged narrow is not a phone. The question here is genuinely about input,
+ * because the two behaviours being gated are wheel zoom and drag-to-pan.
+ *
+ * Read once, when the map mounts. The map only mounts on a deliberate tap, so
+ * there is no meaningful window in which someone plugs in a mouse and expects
+ * this to change underneath them.
+ */
+function useFinePointer(): boolean {
+  // useSyncExternalStore rather than useState plus an effect: matchMedia is an
+  // external store, which is exactly what this hook is for. It also makes the
+  // value react to the pointer changing, which the effect version did not.
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(POINTER_QUERY);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(POINTER_QUERY).matches,
+    // Server snapshot. Never reached, because this component is loaded with
+    // ssr: false, but assuming touch is the safer default if that changes.
+    () => false
+  );
+}
+
 export default function PropertyMap({ items }: { items: MappedProperty[] }) {
   const router = useRouter();
+  const finePointer = useFinePointer();
   const centre: [number, number] = items.length
     ? [items[0].latitude, items[0].longitude]
     : [36.8, 10.2];
@@ -98,11 +153,16 @@ export default function PropertyMap({ items }: { items: MappedProperty[] }) {
     <div className="w-full h-full [&_.leaflet-container]:h-full [&_.leaflet-container]:w-full [&_.leaflet-container]:bg-black/5">
       <MapContainer
         center={centre}
-        zoom={9}
-        scrollWheelZoom={false}
-        // One finger scrolls the page; two fingers pan the map. Without this a
-        // full-width map on a phone swallows the scroll and traps the reader.
-        dragging={typeof window !== "undefined" && window.innerWidth >= 768}
+        zoom={CIRCLE_READABLE_ZOOM}
+        // Wheel zoom for anyone with a wheel to turn. On touch it stays off,
+        // because there the equivalent gesture is the page scroll.
+        scrollWheelZoom={finePointer}
+        // Drag-to-pan only with a mouse. On touch, one finger must belong to
+        // the page: a full-width map that answers a swipe by panning itself
+        // traps the reader halfway down the page with no way past it.
+        dragging={finePointer}
+        // Pinch still works on touch, and pinching also pans, so the map is
+        // not immovable there - it just will not take a one-finger swipe.
         touchZoom
         className="h-full w-full"
       >
