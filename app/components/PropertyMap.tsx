@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Circle, Tooltip, useMap } from "react-leaflet";
@@ -153,9 +153,41 @@ function useFinePointer(): boolean {
 export default function PropertyMap({ items }: { items: MappedProperty[] }) {
   const router = useRouter();
   const finePointer = useFinePointer();
+
+  // CARTO is a third party with no contract and no SLA to us. If the key is
+  // rejected, the quota is spent, or they simply have a bad day, Leaflet's
+  // default behaviour is an empty grey rectangle with our attribution under
+  // it, which reads as a broken site rather than an unavailable basemap.
+  //
+  // A handful of failures is normal at the edges of a pan, so this only gives
+  // up once several tiles have failed.
+  const [tilesBroken, setTilesBroken] = useState(false);
+  const failures = useRef(0);
   const centre: [number, number] = items.length
     ? [items[0].latitude, items[0].longitude]
     : [36.8, 10.2];
+
+  if (tilesBroken) {
+    return (
+      <div className="w-full h-full bg-black/5 flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="text-xs font-bold uppercase tracking-[2px] text-black/70 leading-[1.8] max-w-sm">
+          The map is unavailable right now.
+        </p>
+        <ul className="flex flex-col gap-2">
+          {items.map((p) => (
+            <li key={p.id}>
+              <Link
+                href={`/listings/${p.slug}`}
+                className="text-[11px] font-bold uppercase tracking-[2px] border-b border-black pb-0.5 hover:opacity-50 transition-opacity"
+              >
+                {p.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full [&_.leaflet-container]:h-full [&_.leaflet-container]:w-full [&_.leaflet-container]:bg-black/5">
@@ -193,6 +225,17 @@ export default function PropertyMap({ items }: { items: MappedProperty[] }) {
             '&copy; <a href="https://carto.com/attributions">CARTO</a>'
           }
           maxZoom={20}
+          eventHandlers={{
+            tileerror: () => {
+              failures.current += 1;
+              if (failures.current >= 4) setTilesBroken(true);
+            },
+            tileload: () => {
+              // A successful tile means the layer is alive; forget earlier
+              // stragglers so a slow start does not trip the threshold.
+              failures.current = 0;
+            },
+          }}
         />
         <FitToProperties items={items} />
 
