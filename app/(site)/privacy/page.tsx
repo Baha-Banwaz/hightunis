@@ -152,9 +152,9 @@ export default function PrivacyPage() {
           is a still panel with a button, and no request leaves your browser for it.
         </p>
         <p>
-          When you do open it, the map images come from servers run by the OpenStreetMap
-          Foundation. That is a different organisation from us, and it is the only time this
-          website causes your browser to contact anyone other than us. Opening the map tells them:
+          When you do open it, the map images come from CARTO, a mapping company. They are a
+          different organisation from us, and this is the only time this website causes your
+          browser to contact anyone other than us. Opening the map tells CARTO:
         </p>
         <List
           items={[
@@ -168,6 +168,12 @@ export default function PrivacyPage() {
           back from them, and we cannot tell from our own records whether you opened the map.
         </p>
         <p>
+          You will also see OpenStreetMap credited in the corner of the map. That is because the
+          map is drawn from OpenStreetMap&apos;s data, which both they and we are required to
+          credit. It is a credit for the data, not a second company receiving your request: the
+          images come from CARTO and your browser contacts nobody else.
+        </p>
+        <p>
           The locations shown are deliberately approximate. Each property is drawn as a circle
           covering roughly a kilometre, not as an exact point, because these are private homes and
           publishing their precise addresses would not be safe or fair to the people who own them.
@@ -177,9 +183,10 @@ export default function PrivacyPage() {
           Legal review of the consent position for the map, alongside the analytics question.
           Our reading: it stores nothing on your device, which is what the cookie rules attach to,
           and it loads only on a deliberate action, which is a stronger position than analytics
-          has. Against that, the OpenStreetMap Foundation receives an IP address and is a separate
-          controller with no contract between us, which analytics does not involve. Confirm which
-          way this falls, and whether the tap-to-open design is itself doing the work of consent.
+          has. Against that, CARTO receives an IP address and is a separate controller with no
+          contract between us, which analytics does not involve. Confirm which way this falls,
+          whether the tap-to-open design is itself doing the work of consent, and whether
+          CARTO&apos;s own terms require anything of us beyond the attribution on the map.
         </Todo>
       </Section>
 

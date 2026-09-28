@@ -90,10 +90,11 @@ export default function CookiesPage() {
         <p>
           <strong className="text-black">There is one map, on the collection page.</strong> It
           loads nothing at all until you tap it: until then it is a still panel with a button.
-          Tapping it fetches map images from the OpenStreetMap Foundation, which is the only time
+          Tapping it fetches map images from CARTO, a mapping company, which is the only time
           anything on this site causes your browser to contact another organisation. Those
-          requests set no cookies and store nothing on your device. What the Foundation can see is
-          set out in the privacy policy.
+          requests set no cookies and store nothing on your device. What CARTO can see is set out
+          in the privacy policy. OpenStreetMap is credited on the map because the map is drawn
+          from their data, but your browser does not contact them.
         </p>
         <p>
           Photographs and fonts are served from this domain rather than from an external service,
@@ -136,8 +137,8 @@ export default function CookiesPage() {
           stores anything on a visitor&apos;s device, which is what the cookie rules attach to, so
           our reading is that no banner is required for either. That reading is defensible rather
           than settled. The map is the more awkward of the two, because it sends an IP address to
-          an organisation we have no contract with, though it only does so when the visitor asks
-          it to. Confirm both, and record the lawful basis.
+          CARTO, an organisation we have no contract with, though it only does so when the visitor
+          asks it to. Confirm both, and record the lawful basis.
         </Todo>
       </Section>
 

@@ -18,9 +18,9 @@ import type { MappedProperty } from "./PropertyMap";
  * scrolling page swallows the scroll; one that does not exist until asked for
  * cannot. After that, one finger scrolls the page and two pan the map.
  *
- * And it is the privacy boundary. No request reaches the OpenStreetMap
- * Foundation until someone presses this, so a visitor who never opens the map
- * never has their IP sent anywhere. The button text says so.
+ * And it is the privacy boundary. No request reaches CARTO until someone
+ * presses this, so a visitor who never opens the map never has their IP sent
+ * anywhere. The button text says so.
  *
  * ssr: false because Leaflet needs `window`. That option is not allowed in a
  * server component, which is the whole reason this wrapper is a client
@@ -42,6 +42,20 @@ export default function PropertyMapPanel({ items }: { items: MappedProperty[] })
 
   // Nothing to place. Rendering an empty map would be worse than no map.
   if (items.length === 0) return null;
+
+  // Without a key CARTO does not return an error, it returns a tile stamped
+  // "API KEY REQUIRED" across every square. A broken map that looks like a
+  // working one is worse than no map, so the whole panel stands down.
+  if (!process.env.NEXT_PUBLIC_CARTO_KEY) {
+    if (process.env.NODE_ENV === "production") return null;
+    return (
+      <p className="mb-16 border-2 border-dashed border-black px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] leading-[1.8]">
+        Map hidden: NEXT_PUBLIC_CARTO_KEY is not set. Get a free key at
+        carto.com/basemaps/apikey and put it in .env.local and in the Vercel
+        project settings.
+      </p>
+    );
+  }
 
   return (
     <section aria-label="Property locations" className="mb-16">
@@ -76,8 +90,8 @@ export default function PropertyMapPanel({ items }: { items: MappedProperty[] })
               Show the map
             </button>
             <p className="text-[10px] font-semibold tracking-[1px] text-black/60 max-w-xs leading-[1.7]">
-              Opening it loads map images from OpenStreetMap, which is outside this site. Nothing
-              is sent until you do.
+              Opening it loads map images from CARTO, which is outside this site. Nothing is
+              sent until you do.
             </p>
           </div>
         )}

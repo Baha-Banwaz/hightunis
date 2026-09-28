@@ -43,6 +43,14 @@ const CIRCLE_READABLE_ZOOM = 13;
 const POINTER_QUERY = "(pointer: fine)";
 
 /**
+ * Public by design, see the TileLayer comment. Empty when unset, which
+ * PropertyMapPanel checks before rendering anything at all: a missing key
+ * makes CARTO serve a watermarked "API KEY REQUIRED" tile rather than an
+ * error, so without this check a broken map would look like a working one.
+ */
+const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY ?? "";
+
+/**
  * Fits the view to whatever is being shown, so one distant property does not
  * leave the rest in a huddle.
  *
@@ -167,11 +175,24 @@ export default function PropertyMap({ items }: { items: MappedProperty[] }) {
         className="h-full w-full"
       >
         <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          // Required by the OpenStreetMap Foundation's tile usage policy, and
-          // the right thing regardless: the basemap is their work.
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          maxZoom={17}
+          // CARTO Positron. "light_all" is Positron with labels.
+          //
+          // The key is a query parameter on every tile URL, so it is public by
+          // construction: anyone can read it from the network tab. That is why
+          // it is NEXT_PUBLIC_ and not a secret. CARTO meters it per key, and
+          // restricting it to our domains in their dashboard is what actually
+          // protects it.
+          url={`https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?key=${CARTO_KEY}`}
+          // Both credits, and both are required. CARTO asks for "© OpenStreetMap
+          // contributors, © CARTO" on every map on every tier, and the OSM half
+          // is not optional either: Positron is rendered from OpenStreetMap data,
+          // which is ODbL licensed. The tiles come from CARTO; the data under
+          // them is OSM's. Do not drop either.
+          attribution={
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+            '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+          }
+          maxZoom={20}
         />
         <FitToProperties items={items} />
 
