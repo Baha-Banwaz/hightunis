@@ -52,8 +52,10 @@ export default async function ListingsPage() {
               price={p.price}
               imageUrl={p.image_url}
               category={p.category}
-              // The first two are above the fold on a phone; the rest can wait.
-              priority={i < 2}
+              gallery={p.gallery}
+              // Four across means four cards can be above the fold on a wide
+              // screen, where it used to be two.
+              priority={i < 4}
             />
           ))}
         </ListingsFilter>

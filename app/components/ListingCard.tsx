@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import HoverGallery from "./HoverGallery";
 import { ArrowRight } from "lucide-react";
 
 export interface ListingCardProps {
@@ -9,6 +9,8 @@ export interface ListingCardProps {
   price: string;
   imageUrl: string;
   category: string;
+  /** The property's other photographs, faded through on hover. */
+  gallery?: string[] | null;
   /** Set on the cards above the fold so their image is not lazy-loaded. */
   priority?: boolean;
 }
@@ -20,23 +22,25 @@ export default function ListingCard({
   price,
   imageUrl,
   category,
+  gallery,
   priority = false,
 }: ListingCardProps) {
+  // Primary first, then the gallery. Blanks and duplicates removed so the
+  // hover cycle never pauses on the same photograph twice or on nothing.
+  const images = Array.from(
+    new Set([imageUrl, ...(gallery ?? [])].filter((src): src is string => Boolean(src)))
+  );
   return (
     <Link href={`/listings/${slug}`} className="group flex flex-col cursor-pointer h-full">
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone mb-6">
-        <Image
-          src={imageUrl}
+      <div className="relative">
+        <HoverGallery
+          images={images}
           alt={title}
-          fill
-          // The grid is one column below md and two columns at every width
-          // above it, inside a 1600px container, so a card never exceeds
-          // ~780px. The old value claimed 33vw above 1200px, which described a
-          // three-column layout that does not exist and had the browser pick
-          // an image too small for the slot.
-          sizes="(max-width: 768px) 100vw, (max-width: 1600px) 50vw, 780px"
           priority={priority}
-          className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+          // The grid is 1 column, then 2 from sm, 3 from lg and 4 from xl,
+          // inside a 1600px container, so a card tops out near 360px.
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 360px"
+          className="mb-6"
         />
         <div className="absolute top-4 left-4 bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-[2px]">
           {category}

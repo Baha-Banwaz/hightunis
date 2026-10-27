@@ -12,6 +12,7 @@ import HomeHero from "./HomeHero";
 import type { Metadata } from "next";
 import { OG_DEFAULTS } from "@/lib/og";
 import { JsonLd, localBusinessSchema } from "@/lib/structured-data";
+import HoverGallery from "@/app/components/HoverGallery";
 import { CaseStudies } from "@/app/components/CaseStudies";
 import { Faq } from "@/app/components/Faq";
 
@@ -35,7 +36,7 @@ export const revalidate = 3600;
 export default async function Home() {
   const { data, error } = await supabase
     .from("properties")
-    .select("id, name, slug, category, location, price, image_url")
+    .select("id, name, slug, category, location, price, image_url, gallery")
     .eq("published", true)
     .eq("featured", true)
     .order("order", { ascending: true })
@@ -76,13 +77,17 @@ export default async function Home() {
 
               return (
                 <Link key={property.id} href={`/listings/${property.slug}`} className={`group ${mobileHiddenClass} flex-col cursor-pointer ${idx === 0 ? "lg:row-span-1" : ""}`}>
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone mb-5">
-                    <Image
-                      src={property.image_url}
+                  <div className="relative mb-5">
+                    <HoverGallery
+                      images={Array.from(
+                        new Set(
+                          [property.image_url, ...(property.gallery ?? [])].filter(
+                            (src): src is string => Boolean(src)
+                          )
+                        )
+                      )}
                       alt={property.name}
-                      fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                     />
                     <div className="absolute top-4 left-4 bg-black text-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-[2px]">
                       {property.category}

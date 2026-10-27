@@ -60,7 +60,12 @@ export default function ListingsFilter({
       */}
       <h2 className="sr-only">Properties</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
+      {/*
+        Two columns was the old layout. Four from xl, stepping 1 / 2 / 3 / 4,
+        so the jump to four happens where a card is still ~360px wide rather
+        than squeezing four into a tablet.
+      */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16">
         {children.map((child, i) => {
           const shown = active === "All" || categories[i] === active;
           // hidden rather than unmounted: the browser keeps the decoded image.
