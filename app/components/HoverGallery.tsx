@@ -3,8 +3,13 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 
-/** How long each image holds before the next one fades in. */
-const HOLD_MS = 1500;
+/**
+ * The first change comes quickly, so the movement is noticed while the cursor
+ * is still arriving. After that it settles: once you know the images change,
+ * a fast cycle is just flicker.
+ */
+const FIRST_CHANGE_MS = 420;
+const HOLD_MS = 1300;
 
 /**
  * Only cycle for a visitor who has a real pointer and has not asked for less
@@ -58,8 +63,13 @@ export default function HoverGallery({
   const [armed, setArmed] = useState(false);
   const [index, setIndex] = useState(0);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const first = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stop = useCallback(() => {
+    if (first.current) {
+      clearTimeout(first.current);
+      first.current = null;
+    }
     if (timer.current) {
       clearInterval(timer.current);
       timer.current = null;
@@ -68,11 +78,19 @@ export default function HoverGallery({
   }, []);
 
   const start = useCallback(() => {
-    if (!mayCycle || images.length < 2 || timer.current) return;
+    if (!mayCycle || images.length < 2 || first.current || timer.current) return;
     setArmed(true);
-    timer.current = setInterval(() => {
-      setIndex((i) => (i + 1) % images.length);
-    }, HOLD_MS);
+
+    // One quick change, then an interval at the slower pace. A single
+    // setInterval cannot do both, and starting the interval straight away at
+    // the fast rate would flicker.
+    first.current = setTimeout(() => {
+      first.current = null;
+      setIndex(1);
+      timer.current = setInterval(() => {
+        setIndex((i) => (i + 1) % images.length);
+      }, HOLD_MS);
+    }, FIRST_CHANGE_MS);
   }, [mayCycle, images.length]);
 
   // A card can be unmounted mid-hover by the category filter.
@@ -88,27 +106,32 @@ export default function HoverGallery({
       onFocus={start}
       onBlur={stop}
     >
-      {images.map((src, i) => {
-        // The first image is always present. The rest appear once hovered.
-        if (i > 0 && !armed) return null;
-        return (
-          <Image
-            key={src}
-            src={src}
-            alt={i === 0 ? alt : ""}
-            aria-hidden={i === 0 ? undefined : true}
-            fill
-            sizes={sizes}
-            priority={i === 0 ? priority : false}
-            // The slow zoom was already on both call sites; cycling is added
-            // to it rather than replacing it. Both properties animate on the
-            // one declaration so they cannot fight each other.
-            className={`object-cover transition-[opacity,transform] duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${
-              i === index ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        );
-      })}
+      {/*
+        The zoom lives on this wrapper, not on the images. Transform and
+        opacity need different durations - a slow push-in and a quicker fade -
+        and one transition declaration on the images could only give them the
+        same one.
+      */}
+      <div className="absolute inset-0 transition-transform duration-[1600ms] ease-out group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+        {images.map((src, i) => {
+          // The first image is always present. The rest appear once hovered.
+          if (i > 0 && !armed) return null;
+          return (
+            <Image
+              key={src}
+              src={src}
+              alt={i === 0 ? alt : ""}
+              aria-hidden={i === 0 ? undefined : true}
+              fill
+              sizes={sizes}
+              priority={i === 0 ? priority : false}
+              className={`object-cover transition-opacity duration-500 ease-out motion-reduce:transition-none ${
+                i === index ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
