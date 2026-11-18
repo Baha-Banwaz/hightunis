@@ -17,6 +17,18 @@
      Paired with BLACK text: 6.24:1. Against white it is 3.36:1, which
      fails WCAG AA for the 10px chip labels. */
   --color-accent: #A8874E;
+
+  /* Homepage partner logo slider (app/components/PartnerLogos.tsx): the
+     track holds the list twice, so sliding it by -50% moves exactly one copy
+     and the loop has no seam. Defined here as a theme animation, used as the
+     animate-partner-scroll class, so Tailwind generates it alongside the
+     utilities. It used to be a hand-written rule at the end of this file, and
+     that version went missing from a production build while the utilities
+     around it shipped. */
+  --animate-partner-scroll: partner-scroll 40s linear infinite;
+  @keyframes partner-scroll {
+    to { transform: translateX(-50%); }
+  }
 }
 
 @layer base {
@@ -69,30 +81,4 @@
 /* Base headings styles based on guidelines */
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.5px;
-}
-
-/* Homepage partner logo slider (app/components/PartnerLogos.tsx). The track
-   holds the list twice; sliding it by -50% moves exactly one copy, so the
-   loop is seamless. Edges fade out rather than cutting logos off hard. */
-.partner-marquee {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-}
-.partner-track {
-  animation: partner-scroll 40s linear infinite;
-}
-@keyframes partner-scroll {
-  to { transform: translateX(-50%); }
-}
-/* Reduced motion: no sliding. One copy, wrapped and centred. */
-@media (prefers-reduced-motion: reduce) {
-  .partner-marquee { -webkit-mask-image: none; mask-image: none; }
-  .partner-track {
-    animation: none;
-    width: auto;
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 2rem;
-  }
-  .partner-track [data-copy="1"] { display: none; }
 }

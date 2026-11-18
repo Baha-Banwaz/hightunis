@@ -92,9 +92,9 @@ export default function PartnerLogos({ items = PARTNERS }: { items?: Partner[] }
   return (
     <section aria-label="Partner hotels" className="bg-white pt-14 pb-4 md:pt-20 md:pb-8">
 
-      <div className="partner-marquee relative overflow-hidden">
+      <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_10%,#000_90%,transparent)] motion-reduce:[mask-image:none]">
         <ul
-          className="partner-track flex w-max items-center"
+          className="flex w-max items-center animate-partner-scroll motion-reduce:animate-none motion-reduce:w-auto motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-8"
           style={{ animationDuration: `${duration}s` }}
         >
           {[0, 1].map((copy) =>
@@ -102,8 +102,7 @@ export default function PartnerLogos({ items = PARTNERS }: { items?: Partner[] }
               <li
                 key={`${copy}-${partner.name}`}
                 aria-hidden={copy === 1 ? true : undefined}
-                data-copy={copy}
-                className="flex shrink-0 items-center justify-center px-8 md:px-14"
+                className={`flex shrink-0 items-center justify-center px-8 md:px-14 ${copy === 1 ? "motion-reduce:hidden" : ""}`}
               >
                 {partner.logo ? (
                   <Image
