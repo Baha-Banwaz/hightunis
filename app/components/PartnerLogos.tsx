@@ -30,7 +30,19 @@ export interface Partner {
  * Fill this array and the slider appears under the homepage statement. Leave
  * it empty and nothing renders on the live site.
  */
-export const PARTNERS: Partner[] = [];
+// Confirmed by the owner, through their lawyer, that each brand below agreed
+// to be shown. Logo files to follow; until then each shows as its name.
+export const PARTNERS: Partner[] = [
+  { name: "Four Seasons Hotel Tunis" },
+  { name: "The Residence Tunis" },
+  { name: "Anantara Tozeur Resort" },
+  { name: "La Badira" },
+  { name: "Villa Didon" },
+  { name: "Dar Said" },
+  { name: "Dar El Marsa" },
+  { name: "Hasdrubal Prestige Djerba" },
+  { name: "Mövenpick Hotel Gammarth" },
+];
 
 /**
  * A slow, continuous row of partner logos. The list is drawn twice and the
