@@ -12,15 +12,15 @@ export default function HomeHero() {
     offset: ["start start", "end start"],
   });
 
-  const bgWhiteValue = useTransform(scrollYProgress, [0.01, 0.25], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]);
-  const textBlackValue = useTransform(scrollYProgress, [0.01, 0.25], ["rgba(255, 255, 255, 1)", "rgba(0, 0, 0, 1)"]);
+  const bgWhiteValue = useTransform(scrollYProgress, [0.01, 0.3], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]);
+  const textBlackValue = useTransform(scrollYProgress, [0.01, 0.3], ["rgba(255, 255, 255, 1)", "rgba(0, 0, 0, 1)"]);
   const subTextOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const scaleImage = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
   return (
     <>
       {/* SECTION 1: HERO */}
-      <div ref={containerRef} className="relative h-[200vh]">
+      <div ref={containerRef} className="relative h-[150vh]">
         <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-black">
 
           {/* Layer 1: Image */}

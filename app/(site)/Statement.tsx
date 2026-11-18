@@ -30,11 +30,11 @@ export default function Statement() {
   const words = STATEMENT.split(" ");
 
   return (
-    <section className="bg-white px-6 lg:px-12 pt-32 pb-36 md:pt-48 md:pb-56">
-      <div className="grid grid-cols-12 gap-x-6">
+    <section className="bg-white px-6 lg:px-12 pt-12 pb-28 md:pt-16 md:pb-40">
+      <div className="mx-auto max-w-[1180px] grid grid-cols-12 gap-x-6">
         <p
           ref={ref}
-          className="col-span-12 md:col-start-4 md:col-span-9 text-[2.1rem] leading-[1.12] md:text-[clamp(2.75rem,4.4vw,4.75rem)] md:leading-[1.08] font-medium tracking-[-0.025em] text-black"
+          className="col-span-12 text-[2.1rem] leading-[1.12] md:text-[clamp(2.75rem,4.4vw,4.75rem)] md:leading-[1.08] font-medium tracking-[-0.025em] text-black"
         >
           {reduceMotion
             ? STATEMENT
@@ -49,7 +49,7 @@ export default function Statement() {
               ))}
         </p>
 
-        <div className="col-span-12 md:col-start-8 md:col-span-4 lg:col-start-9 mt-16 md:mt-24">
+        <div className="col-span-12 md:col-start-7 md:col-span-6 mt-14 md:mt-20">
           <p className="text-base md:text-lg leading-relaxed text-black/70 max-w-[34ch]">
             We find its finest homes, visit every one ourselves, and open the
             door for a small number of clients.
