@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
+import Statement from "./Statement";
 
 export default function HomeHero() {
   const containerRef = useRef(null);
@@ -65,29 +66,8 @@ export default function HomeHero() {
         </div>
       </div>
 
-      {/* 2. STATEMENT MARQUEE */}
-      <section className="bg-white py-24 md:py-36 border-b border-black/10 overflow-hidden flex flex-col items-center justify-center gap-10 md:gap-14">
-        <p className="text-[10px] md:text-xs font-medium uppercase tracking-[0.5em] text-black/50">
-          Hightunis &nbsp;—&nbsp; Tunisia
-        </p>
-        <div className="w-full relative whitespace-nowrap flex overflow-hidden" aria-label="Uncompromising luxury, curated exclusivity">
-          <motion.div
-            aria-hidden="true"
-            className="flex font-serif font-light text-black text-[13vw] md:text-[8vw] leading-[1.15] tracking-[-0.01em]"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ ease: "linear", duration: 60, repeat: Infinity }}
-          >
-            {[0, 1].map((i) => (
-              <span key={i} className="flex items-center">
-                <span className="px-[3vw]">Uncompromising Luxury</span>
-                <span className="text-[0.35em] text-black/40">✦</span>
-                <span className="px-[3vw] italic">Curated Exclusivity</span>
-                <span className="text-[0.35em] text-black/40">✦</span>
-              </span>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* 2. STATEMENT */}
+      <Statement />
     </>
   );
 }
