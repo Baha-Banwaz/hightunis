@@ -29,7 +29,7 @@ export default function Statement() {
   const words = STATEMENT.split(" ");
 
   return (
-    <section className="bg-white px-6 lg:px-12 pt-12 pb-4 md:pt-16 md:pb-8">
+    <section className="px-6 lg:px-12 pt-12 pb-4 md:pt-16 md:pb-8">
       <div className="mx-auto max-w-[1180px]">
         <p
           ref={ref}

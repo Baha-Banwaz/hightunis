@@ -45,7 +45,7 @@ export const CASE_STUDIES: CaseStudy[] = [];
 
 export function CaseStudies({
   items = CASE_STUDIES,
-  heading = "Selected Work",
+  heading = "Selected work",
   intro,
 }: {
   items?: CaseStudy[];
@@ -67,7 +67,7 @@ export function CaseStudies({
   return (
     <section className="bg-white text-black py-24 md:py-32 border-t-2 border-black">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-        <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-6">
+        <h2 className="text-[2.5rem] md:text-[clamp(2.75rem,4.4vw,4.75rem)] font-medium leading-[1.05] tracking-[-0.025em] mb-6">
           {heading}
         </h2>
         {intro && (
@@ -100,7 +100,7 @@ export function CaseStudies({
                   <p className="text-[10px] font-bold uppercase tracking-[3px] text-black/60 mb-4">
                     {study.client} &middot; {study.context}
                   </p>
-                  <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-6">
+                  <h3 className="text-2xl md:text-4xl font-medium tracking-[-0.025em] leading-[1.1] mb-6">
                     {study.title}
                   </h3>
                   <p className="text-base md:text-xl font-medium leading-[1.6] text-black/80">

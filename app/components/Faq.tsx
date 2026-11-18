@@ -67,7 +67,7 @@ export function Faq({
   return (
     <section className="bg-white text-black py-24 md:py-32 border-t-2 border-black">
       <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
-        <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-16">
+        <h2 className="text-[2.5rem] md:text-[clamp(2.75rem,4.4vw,4.75rem)] font-medium leading-[1.05] tracking-[-0.025em] mb-16">
           {heading}
         </h2>
 
@@ -81,7 +81,7 @@ export function Faq({
           {items.map((item) => (
             <details key={item.question} className="group border-b-2 border-black">
               <summary className="flex items-start justify-between gap-8 cursor-pointer list-none py-8 [&::-webkit-details-marker]:hidden">
-                <h3 className="text-xl md:text-3xl font-black uppercase tracking-tighter leading-tight">
+                <h3 className="text-lg md:text-2xl font-medium tracking-[-0.02em] leading-snug">
                   {item.question}
                 </h3>
                 {/*

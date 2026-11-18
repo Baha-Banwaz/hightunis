@@ -14,9 +14,9 @@ export default function HomeHero() {
     offset: ["start start", "end start"],
   });
 
-  const bgWhiteValue = useTransform(scrollYProgress, [0.01, 0.3], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]);
-  const textBlackValue = useTransform(scrollYProgress, [0.01, 0.3], ["rgba(255, 255, 255, 1)", "rgba(0, 0, 0, 1)"]);
-  const subTextOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const bgWhiteValue = useTransform(scrollYProgress, [0.01, 0.16], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]);
+  const textBlackValue = useTransform(scrollYProgress, [0.01, 0.16], ["rgba(255, 255, 255, 1)", "rgba(0, 0, 0, 1)"]);
+  const subTextOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
   const scaleImage = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
   return (
@@ -68,8 +68,15 @@ export default function HomeHero() {
         </div>
       </div>
 
-      {/* 2. STATEMENT */}
-      <Statement />
+      {/* 2. STATEMENT
+          Pulled up over the empty bottom of the hero's sticky frame, so it
+          starts to rise as the photo finishes fading (0.16 x 150vh = 24vh
+          of scroll; the statement enters at 150 - 32 - 100 = 18vh, still
+          faint grey) instead of after half a screen of empty white.
+          Transparent and above the hero's sticky frame. */}
+      <div className="relative z-20 -mt-[32vh]">
+        <Statement />
+      </div>
       <PartnerLogos />
     </>
   );

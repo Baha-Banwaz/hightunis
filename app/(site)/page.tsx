@@ -56,8 +56,8 @@ export default async function Home() {
       {/* 3. CURATED ESTATES CATALOG */}
       <section className="bg-white py-32 px-6 lg:px-12 max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between mb-16 border-b-2 border-black pb-8">
-          <h2 className="text-4xl md:text-7xl font-bold tracking-tighter text-black uppercase">
-            Curated<br/>Estates
+          <h2 className="text-[2.5rem] md:text-[clamp(2.75rem,4.4vw,4.75rem)] font-medium leading-[1.05] tracking-[-0.025em] text-black">
+            Curated<br/>estates
           </h2>
           <Link href="/listings" className="group relative flex items-center justify-center w-24 h-24 md:w-32 md:h-32 rounded-full border border-black hover:bg-black hover:text-white transition-all duration-500">
             <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">View All</span>
@@ -94,7 +94,7 @@ export default async function Home() {
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <h3 className="text-2xl font-black tracking-tighter text-black uppercase group-hover:text-black/50 transition-colors duration-300">{property.name}</h3>
+                    <h3 className="text-xl md:text-2xl font-medium tracking-[-0.02em] text-black group-hover:text-black/50 transition-colors duration-300">{property.name}</h3>
                     <div className="flex justify-between items-center mt-2">
                       <span className="text-[10px] font-bold uppercase tracking-[2px] text-black/60">{property.location}</span>
                       <span className="text-sm font-bold text-black tracking-tight">{property.price}</span>
@@ -126,11 +126,11 @@ export default async function Home() {
       {/* 4. SERVICES CALLOUT - GIANT TYPOGRAPHY */}
       <section className="bg-black text-white py-40 px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-16">
         <div className="w-full md:w-1/2">
-          <h2 className="text-[8vw] md:text-[6vw] font-black leading-[0.9] tracking-tighter uppercase mb-12">
-            Beyond<br/>Real Estate
+          <h2 className="text-[2.5rem] md:text-[clamp(2.75rem,4.4vw,4.75rem)] font-medium leading-[1.05] tracking-[-0.025em] mb-12">
+            Beyond<br/>real estate
           </h2>
           <p className="text-lg md:text-2xl font-medium tracking-tight max-w-lg mb-12">
-            Our private agency division handles digital curation, influencer placement, and high-end brand identity for Tunisia's elite hospitality tier.
+            Our private agency division handles digital curation, influencer placement, and high-end brand identity for Tunisia&apos;s elite hospitality tier.
           </p>
           <Link href="/services" className="inline-flex items-center gap-4 text-sm font-bold uppercase tracking-widest border-b border-white pb-2 hover:text-white/50 hover:border-white/50 transition-colors">
             View Agency Services <ArrowUpRight size={18} />
