@@ -4,6 +4,8 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Statement from "./Statement";
+import PartnerLogos from "@/app/components/PartnerLogos";
+import { wordmarkFont } from "@/app/fonts";
 
 export default function HomeHero() {
   const containerRef = useRef(null);
@@ -44,8 +46,8 @@ export default function HomeHero() {
             className="absolute inset-0 z-10 w-full px-4 md:px-6 flex flex-col items-center justify-center text-center mix-blend-screen pointer-events-none"
           >
             <motion.h1
-              className="text-[13.5vw] md:text-[12vw] leading-[0.8] uppercase whitespace-nowrap"
-              style={{ color: textBlackValue, fontFamily: "'Arial Black', Impact, sans-serif", letterSpacing: "-0.05em" }}
+              className={`${wordmarkFont.className} text-[13.5vw] md:text-[12vw] leading-[0.8] uppercase whitespace-nowrap`}
+              style={{ color: textBlackValue, letterSpacing: "-0.05em" }}
             >
               HIGHTUNIS
             </motion.h1>
@@ -68,6 +70,7 @@ export default function HomeHero() {
 
       {/* 2. STATEMENT */}
       <Statement />
+      <PartnerLogos />
     </>
   );
 }

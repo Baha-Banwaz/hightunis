@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { wordmarkFont } from "@/app/fonts";
 
 const SOCIAL_LINKS = [
   { label: "Instagram", href: SITE_CONFIG.social.instagram },
@@ -65,8 +66,8 @@ export default function Footer() {
                 every page on the site a second one. aria-hidden because the
                 brand name is already announced by the navbar logo. */}
             <div aria-hidden="true"
-            style={{ fontFamily: "'Arial Black', Impact, sans-serif", letterSpacing: "-0.05em" }}
-            className="text-[11vw] md:text-[12vw] font-black leading-none uppercase whitespace-nowrap text-white"
+            style={{ letterSpacing: "-0.05em" }}
+            className={`${wordmarkFont.className} text-[11vw] md:text-[12vw] leading-none uppercase whitespace-nowrap text-white`}
           >
               HIGHTUNIS
             </div>

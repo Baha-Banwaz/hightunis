@@ -70,3 +70,32 @@
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.5px;
 }
+
+/* Homepage partner logo slider (app/components/PartnerLogos.tsx). The track
+   holds the list twice; sliding it by -50% moves exactly one copy, so the
+   loop is seamless. Edges fade out rather than cutting logos off hard. */
+.partner-marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+}
+.partner-track {
+  animation: partner-scroll 40s linear infinite;
+}
+.partner-marquee:hover .partner-track {
+  animation-play-state: paused;
+}
+@keyframes partner-scroll {
+  to { transform: translateX(-50%); }
+}
+/* Reduced motion: no sliding. One copy, wrapped and centred. */
+@media (prefers-reduced-motion: reduce) {
+  .partner-marquee { -webkit-mask-image: none; mask-image: none; }
+  .partner-track {
+    animation: none;
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 2rem;
+  }
+  .partner-track [data-copy="1"] { display: none; }
+}
