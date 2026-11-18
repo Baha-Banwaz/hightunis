@@ -138,16 +138,11 @@ export default async function Home() {
         </div>
         <div className="w-full md:w-1/2 relative h-[50vh] md:h-[70vh]">
           <Image
-            src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1600&auto=format&fit=crop"
-            /* TODO_CONTENT_NEEDED: describe what this photograph actually
-               shows. It is an Unsplash image used as a decorative backdrop for
-               the agency callout; its subject cannot be determined from the
-               filename or the surrounding copy. Empty alt until then, which is
-               correct for decoration and honest about the gap. */
-            alt=""
+            src="/beyond-real-estate.jpg"
+            alt="Whitewashed facade with a blue wrought-iron window grille casting its shadow, a potted plant against the sky and an arched blue studded door"
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover opacity-80"
+            className="object-cover"
           />
         </div>
       </section>

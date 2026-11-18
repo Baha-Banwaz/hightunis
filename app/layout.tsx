@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import { SITE_URL, SITE_CONFIG } from "@/lib/site-config";
 import { OG_DEFAULTS, TWITTER_DEFAULTS } from "@/lib/og";
 import SiteAnalytics from "@/app/components/SiteAnalytics";
@@ -14,6 +14,16 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700", "900"],
   // Fall back to the system stack while the webfont loads, then swap, rather
   // than holding text invisible.
+  display: "swap",
+});
+
+// Display serif for the editorial moments (the homepage statement marquee),
+// where the heavy sans read as streetwear rather than luxury.
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["300", "400"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -57,7 +67,7 @@ export default function RootLayout({
       {/* suppressHydrationWarning: browser extensions inject attributes into <body> before React hydrates */}
       <body
         suppressHydrationWarning
-        className={`${dmSans.variable} font-sans min-h-screen flex flex-col antialiased bg-white text-rich-black`}
+        className={`${dmSans.variable} ${cormorant.variable} font-sans min-h-screen flex flex-col antialiased bg-white text-rich-black`}
       >
         {children}
         <SiteAnalytics />

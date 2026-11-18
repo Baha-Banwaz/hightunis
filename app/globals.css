@@ -19,6 +19,12 @@
   --color-accent: #A8874E;
 }
 
+/* `inline` so the token resolves where it is used: next/font defines
+   --font-cormorant on <body>, not on :root. */
+@theme inline {
+  --font-serif: var(--font-cormorant), Georgia, "Times New Roman", serif;
+}
+
 @layer base {
   body {
     @apply text-rich-black bg-white antialiased font-sans;
