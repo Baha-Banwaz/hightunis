@@ -138,8 +138,8 @@ export default async function Home() {
         </div>
         <div className="w-full md:w-1/2 relative h-[50vh] md:h-[70vh]">
           <Image
-            src="/beyond-real-estate.jpg"
-            alt="Whitewashed facade with a blue wrought-iron window grille casting its shadow, a potted plant against the sky and an arched blue studded door"
+            src="/beyond-ceramic-tiles.jpg"
+            alt="Hand-painted blue and white ceramic tiles with floral and arabesque motifs"
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"

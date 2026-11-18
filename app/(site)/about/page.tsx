@@ -55,8 +55,8 @@ export default async function AboutPage() {
           
           <div className="lg:col-span-5 relative h-[60vh] md:h-[90vh] bg-stone">
              <Image
-              src="https://oqzfowaqxgwquzofwxfg.supabase.co/storage/v1/object/public/media/agency/agency-terrace.webp"
-              alt="Palm trees against a modern terrace at dusk"
+              src="/about-courtyard.jpg"
+              alt="Whitewashed courtyard with arches, a potted palm beside a white staircase and a turquoise pool"
               fill
               sizes="(max-width: 1024px) 100vw, 42vw"
               className="object-cover"
