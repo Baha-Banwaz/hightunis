@@ -10,7 +10,20 @@ export interface Partner {
    * own pixel size, so the browser can reserve the space before it loads.
    * Leave it out and the name is shown as text in its place.
    */
-  logo?: { src: string; width: number; height: number };
+  logo?: {
+    src: string;
+    width: number;
+    height: number;
+    /**
+     * How the logo is flattened to match the others. "dark" (the default)
+     * turns every coloured pixel black, which suits outline and white logos.
+     * "grey" keeps the logo's shading and only removes its colour; use it for
+     * logos with filled shapes, which would otherwise become solid blobs.
+     */
+    tone?: "dark" | "grey";
+    /** A square or emblem-style logo that needs more height to be legible. */
+    tall?: boolean;
+  };
 }
 
 /**
@@ -31,16 +44,18 @@ export interface Partner {
  * it empty and nothing renders on the live site.
  */
 // Confirmed by the owner, through their lawyer, that each brand below agreed
-// to be shown. Logo files to follow; until then each shows as its name.
+// to be shown. Logos were taken from each hotel's own website (Four Seasons
+// from Wikipedia, as its site refuses automated downloads). Anantara,
+// Mövenpick and Dar El Marsa show as names until their logo files are added.
 export const PARTNERS: Partner[] = [
-  { name: "Four Seasons Hotel Tunis" },
-  { name: "The Residence Tunis" },
+  { name: "Four Seasons Hotel Tunis", logo: { src: "/partners/four-seasons.svg", width: 221, height: 103 } },
+  { name: "The Residence Tunis", logo: { src: "/partners/the-residence-tunis.svg", width: 162, height: 76 } },
   { name: "Anantara Tozeur Resort" },
-  { name: "La Badira" },
-  { name: "Villa Didon" },
-  { name: "Dar Said" },
+  { name: "La Badira", logo: { src: "/partners/la-badira.webp", width: 170, height: 58 } },
+  { name: "Villa Didon", logo: { src: "/partners/villa-didon.svg", width: 738, height: 153 } },
+  { name: "Dar Said", logo: { src: "/partners/dar-said.svg", width: 267, height: 261, tone: "grey", tall: true } },
   { name: "Dar El Marsa" },
-  { name: "Hasdrubal Prestige Djerba" },
+  { name: "Hasdrubal Prestige Djerba", logo: { src: "/partners/hasdrubal-prestige.webp", width: 300, height: 70, tone: "grey" } },
   { name: "Mövenpick Hotel Gammarth" },
 ];
 
@@ -48,8 +63,8 @@ export const PARTNERS: Partner[] = [
  * A slow, continuous row of partner logos. The list is drawn twice and the
  * track slides left by exactly one copy, so the loop has no visible seam.
  * It pauses on hover, and stands still, wrapped and centred, for visitors who
- * prefer reduced motion. Logos are shown in greyscale so no single brand's
- * colours compete with the page.
+ * prefer reduced motion. Logos are flattened to black or grey so no single
+ * brand's colours compete with the page.
  */
 export default function PartnerLogos({ items = PARTNERS }: { items?: Partner[] }) {
   if (items.length === 0) {
@@ -95,10 +110,10 @@ export default function PartnerLogos({ items = PARTNERS }: { items?: Partner[] }
                     alt={copy === 0 ? partner.name : ""}
                     width={partner.logo.width}
                     height={partner.logo.height}
-                    className="h-8 md:h-11 w-auto max-w-[160px] md:max-w-[200px] object-contain grayscale opacity-70"
+                    className={`${partner.logo.tall ? "h-16 md:h-20" : "h-9 md:h-12"} w-auto max-w-[170px] md:max-w-[220px] object-contain ${partner.logo.tone === "grey" ? "grayscale contrast-150 brightness-50 opacity-90" : "brightness-0 opacity-70"}`}
                   />
                 ) : (
-                  <span className="whitespace-nowrap text-xl md:text-2xl font-medium tracking-[-0.02em] text-black/70">
+                  <span className="whitespace-nowrap text-lg md:text-[1.35rem] font-normal tracking-[-0.01em] text-black/60">
                     {partner.name}
                   </span>
                 )}
