@@ -126,8 +126,8 @@ export default async function Home() {
       {/* 4. SERVICES CALLOUT - GIANT TYPOGRAPHY */}
       <section className="bg-black text-white py-40 px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-16">
         <div className="w-full md:w-1/2">
-          <h2 className="text-[2.5rem] md:text-[clamp(2.75rem,4.4vw,4.75rem)] font-medium leading-[1.05] tracking-[-0.025em] mb-12">
-            Beyond<br/>real estate
+          <h2 className="text-[8vw] md:text-[6vw] font-black leading-[0.9] tracking-tighter uppercase mb-12">
+            Beyond<br/>Real Estate
           </h2>
           <p className="text-lg md:text-2xl font-medium tracking-tight max-w-lg mb-12">
             Our private agency division handles digital curation, influencer placement, and high-end brand identity for Tunisia&apos;s elite hospitality tier.

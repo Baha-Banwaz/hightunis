@@ -14,15 +14,15 @@ export default function HomeHero() {
     offset: ["start start", "end start"],
   });
 
-  const bgWhiteValue = useTransform(scrollYProgress, [0.01, 0.16], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]);
-  const textBlackValue = useTransform(scrollYProgress, [0.01, 0.16], ["rgba(255, 255, 255, 1)", "rgba(0, 0, 0, 1)"]);
+  const bgWhiteValue = useTransform(scrollYProgress, [0.01, 0.25], ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]);
+  const textBlackValue = useTransform(scrollYProgress, [0.01, 0.25], ["rgba(255, 255, 255, 1)", "rgba(0, 0, 0, 1)"]);
   const subTextOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
   const scaleImage = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
   return (
     <>
       {/* SECTION 1: HERO */}
-      <div ref={containerRef} className="relative h-[150vh]">
+      <div ref={containerRef} className="relative h-[180vh]">
         <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-black">
 
           {/* Layer 1: Image */}
@@ -69,12 +69,14 @@ export default function HomeHero() {
       </div>
 
       {/* 2. STATEMENT
-          Pulled up over the empty bottom of the hero's sticky frame, so it
-          starts to rise as the photo finishes fading (0.16 x 150vh = 24vh
-          of scroll; the statement enters at 150 - 32 - 100 = 18vh, still
-          faint grey) instead of after half a screen of empty white.
+          The hero is 180vh, so its frame stays pinned for 80vh of scroll.
+          The photo finishes fading to white at 0.25 x 180vh = 45vh, the
+          white HIGHTUNIS then holds on its own, and only after that does the
+          statement start to rise: pulled up 24vh over the empty lower part
+          of the pinned frame, it enters at 180 - 24 - 100 = 56vh. That keeps
+          the gap below HIGHTUNIS small without cutting the hero effect short.
           Transparent and above the hero's sticky frame. */}
-      <div className="relative z-20 -mt-[32vh]">
+      <div className="relative z-20 -mt-[24vh]">
         <Statement />
       </div>
       <PartnerLogos />
