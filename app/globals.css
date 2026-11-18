@@ -81,9 +81,6 @@ h1, h2, h3, h4, h5, h6 {
 .partner-track {
   animation: partner-scroll 40s linear infinite;
 }
-.partner-marquee:hover .partner-track {
-  animation-play-state: paused;
-}
 @keyframes partner-scroll {
   to { transform: translateX(-50%); }
 }

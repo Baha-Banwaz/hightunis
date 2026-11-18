@@ -44,26 +44,29 @@ export interface Partner {
  * it empty and nothing renders on the live site.
  */
 // Confirmed by the owner, through their lawyer, that each brand below agreed
-// to be shown. Logos were taken from each hotel's own website (Four Seasons
-// from Wikipedia, as its site refuses automated downloads). Anantara,
-// Mövenpick and Dar El Marsa show as names until their logo files are added.
+// to be shown. Logos were taken from each hotel's own website where it allowed
+// it; Four Seasons came from Wikipedia, Mövenpick from worldvectorlogo.com and
+// Anantara from logowik.com (its pre-2024 "Hotels, Resorts, Spas" version).
+// Swap in the official files whenever the hotels supply them. Dar El Marsa
+// shows as its name: its site refuses automated requests and no copy of its
+// logo could be found elsewhere.
 export const PARTNERS: Partner[] = [
   { name: "Four Seasons Hotel Tunis", logo: { src: "/partners/four-seasons.svg", width: 221, height: 103 } },
   { name: "The Residence Tunis", logo: { src: "/partners/the-residence-tunis.svg", width: 162, height: 76 } },
-  { name: "Anantara Tozeur Resort" },
+  { name: "Anantara Tozeur Resort", logo: { src: "/partners/anantara.webp", width: 685, height: 341 } },
   { name: "La Badira", logo: { src: "/partners/la-badira.webp", width: 170, height: 58 } },
   { name: "Villa Didon", logo: { src: "/partners/villa-didon.svg", width: 738, height: 153 } },
   { name: "Dar Said", logo: { src: "/partners/dar-said.svg", width: 267, height: 261, tone: "grey", tall: true } },
   { name: "Dar El Marsa" },
   { name: "Hasdrubal Prestige Djerba", logo: { src: "/partners/hasdrubal-prestige.webp", width: 300, height: 70, tone: "grey" } },
-  { name: "Mövenpick Hotel Gammarth" },
+  { name: "Mövenpick Hotel Gammarth", logo: { src: "/partners/movenpick.svg", width: 704, height: 250 } },
 ];
 
 /**
  * A slow, continuous row of partner logos. The list is drawn twice and the
  * track slides left by exactly one copy, so the loop has no visible seam.
- * It pauses on hover, and stands still, wrapped and centred, for visitors who
- * prefer reduced motion. Logos are flattened to black or grey so no single
+ * It stands still, wrapped and centred, for visitors who prefer reduced
+ * motion. Logos are flattened to black or grey so no single
  * brand's colours compete with the page.
  */
 export default function PartnerLogos({ items = PARTNERS }: { items?: Partner[] }) {
@@ -86,10 +89,7 @@ export default function PartnerLogos({ items = PARTNERS }: { items?: Partner[] }
   const duration = Math.max(items.length * 4, 24);
 
   return (
-    <section aria-labelledby="partners-heading" className="bg-white pt-16 pb-4 md:pt-24 md:pb-8">
-      <h2 id="partners-heading" className="px-6 lg:px-12 mx-auto max-w-[1180px] box-content text-sm md:text-base text-black/60 mb-10 md:mb-12">
-        Some of the houses and hotels we work with
-      </h2>
+    <section aria-label="Partner hotels" className="bg-white pt-14 pb-4 md:pt-20 md:pb-8">
 
       <div className="partner-marquee relative overflow-hidden">
         <ul
